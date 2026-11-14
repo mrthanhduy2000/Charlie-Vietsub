@@ -1,8 +1,8 @@
-# Vietnamese Subtitle Translator (Coursera + YouTube)
+# Charlie Vietsub (Coursera + YouTube)
 
 Chrome MV3 extension: translates Coursera/YouTube subtitles into Vietnamese with Gemini, plus AI
-dubbing. **`manifest.json` holds the real version** (the folder name `v1.0.4` is stale, and so is
-any version number written into a doc: never hardcode one here). No bundler, no
+dubbing. **`manifest.json` holds the real version**; version numbers in docs may be stale.
+The working folder is `Charlie Vietsub`; the old `v1.0.4` path is a Chrome compatibility symlink. No bundler, no
 dependencies, no build step: these source files *are* the extension, loaded unpacked in Chrome
 "Profile 42", id `lpknjhmnlocilmkmooomffknibghibao`. All source sits flat in the repo root. Most
 existing comments and test names are Vietnamese; what new ones use is in **Language** below.
@@ -174,7 +174,7 @@ By hand, `/ban-giao` is:
    happened here, and you would be committing someone's half-finished feature.
 6. Run `node tools/local-build.js verify` after committing. Git hooks refresh the ignored stamp
    after commit/merge/checkout/rewrite and verify the stamp plus pending main releases before push.
-   Then `git push` to `origin`. The repo lives at `github.com/mrthanhduy2000/vietnamese-subtitle-translator`
+   Then `git push` to `origin`. The repo lives at `github.com/mrthanhduy2000/Charlie-Vietsub`
    (**private**), and the user wants every update there. `gh` keeps the credentials in the macOS
    keychain, which the Bash sandbox cannot read: on an auth or keychain error, retry the push with
    the sandbox disabled. Never force-push.

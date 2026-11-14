@@ -37,7 +37,7 @@ for permission between them, and do not skip one because it looks unnecessary.
    (If another session is working in this folder at the same time, add your own paths, not `-A`.)
 
 7. Run `node tools/local-build.js verify` after committing. A stale/missing stamp or pending main
-   release notes must be resolved before finishing. Then `git push` to `origin` (private repo `github.com/mrthanhduy2000/vietnamese-subtitle-translator`).
+   release notes must be resolved before finishing. Then `git push` to `origin` (private repo `github.com/mrthanhduy2000/Charlie-Vietsub`).
    The user wants every update on GitHub. Credentials live in the macOS keychain through `gh`, which
    the Bash sandbox cannot read: if the push fails with an authentication or keychain error, run the
    same `git push` again with the sandbox disabled. Never force-push. If it still fails (offline,

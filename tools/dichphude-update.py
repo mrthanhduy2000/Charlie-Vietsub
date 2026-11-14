@@ -40,7 +40,7 @@ import unicodedata
 import urllib.request
 import zipfile
 
-REPO = "mrthanhduy2000/vietnamese-subtitle-translator"
+REPO = "mrthanhduy2000/Charlie-Vietsub"
 REF = os.environ.get("DPD_REF", "refs/heads/share")
 HERE = os.path.dirname(os.path.abspath(__file__))           # the VieNeu folder
 STAGE = os.path.join(HERE, ".dpd-staged")

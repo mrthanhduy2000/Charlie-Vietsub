@@ -1,9 +1,9 @@
 #!/bin/bash
 # Cài (hoặc cập nhật) tiện ích "Dịch Phụ Đề & Lồng Tiếng AI" và máy chủ giọng VieNeu trên macOS.
-#   curl -fsSL https://raw.githubusercontent.com/mrthanhduy2000/vietnamese-subtitle-translator/share/install-mac.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/mrthanhduy2000/Charlie-Vietsub/share/install-mac.sh | bash
 # Chạy lại bất cứ lúc nào để cập nhật: cài đặt và khóa API trong trình duyệt được giữ nguyên.
 # Gỡ bỏ:
-#   curl -fsSL https://raw.githubusercontent.com/mrthanhduy2000/vietnamese-subtitle-translator/share/install-mac.sh | bash -s -- --uninstall
+#   curl -fsSL https://raw.githubusercontent.com/mrthanhduy2000/Charlie-Vietsub/share/install-mac.sh | bash -s -- --uninstall
 #
 # Must run on macOS's own /bin/bash 3.2. Overrides, for testing only: DPD_SRC (an unpacked share
 # tree instead of the download), DPD_REF (a branch, tag or commit of the share repo to download
@@ -14,7 +14,7 @@ set -euo pipefail
 # The whole body is one function, called on the last line: under `curl | bash` the script is read
 # from stdin, and a child that reads stdin would otherwise swallow the rest of it.
 main() {
-REPO="mrthanhduy2000/vietnamese-subtitle-translator"
+REPO="mrthanhduy2000/Charlie-Vietsub"
 # VieNeu is pinned: vieneu/openai_speech.py is a patched copy of this exact commit's file.
 VIENEU_COMMIT="d350c63fceb0792d7b2db9a51d61cc040b1f8efa"
 EXT_DIR="${DPD_EXT_DIR:-$HOME/DichPhuDe}"
@@ -119,7 +119,7 @@ if [[ "${1:-}" == "--uninstall" ]]; then
     rm -f "$UPD"
     echo
     echo " ĐÃ GỠ XONG. Còn một bước: ở trang Tiện ích của trình duyệt (chrome://extensions,"
-    echo " Edge: edge://extensions), bấm \"Xóa\" trên thẻ \"Vietnamese Subtitle Translator\"."
+    echo " Edge: edge://extensions), bấm \"Xóa\" trên thẻ \"Charlie Vietsub\"."
     return 0
 fi
 
@@ -322,7 +322,7 @@ echo
 echo "=================================================================="
 if [[ $UPDATE == 1 ]]; then
     echo " ĐÃ CẬP NHẬT lên bản $VERSION. Thoát hẳn trình duyệt rồi mở lại là dùng bản mới"
-    echo " (hoặc bấm Tải lại trên thẻ \"Vietnamese Subtitle Translator\" ở trang"
+    echo " (hoặc bấm Tải lại trên thẻ \"Charlie Vietsub\" ở trang"
     echo " chrome://extensions). Đừng gỡ tiện ích rồi cài lại: sẽ mất cài đặt và khóa API."
 else
     echo " ĐÃ CÀI bản $VERSION. Còn một bước làm bằng tay trong trình duyệt: làm theo"

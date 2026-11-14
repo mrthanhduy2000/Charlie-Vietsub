@@ -56,7 +56,7 @@
       <div class="row"><code id="folder"></code><button data-copy="folder">Chép</button></div>
       <p class="note" id="pick-hint"></p>
     </li>
-    <li>Trang <b>Cài đặt</b> của tiện ích tự mở ra: dán khóa Gemini vào ô "Gemini API Key" (lấy miễn phí tại <a href="https://aistudio.google.com/apikey">Google AI Studio</a>; chưa có khóa vẫn dịch được bằng Google Dịch). Rồi ghim tiện ích lên thanh công cụ: <span id="pin-hint">bấm biểu tượng mảnh ghép, chọn ghim cạnh <b>Vietnamese Subtitle Translator</b></span>.</li>
+    <li>Trang <b>Cài đặt</b> của tiện ích tự mở ra: dán khóa Gemini vào ô "Gemini API Key" (lấy miễn phí tại <a href="https://aistudio.google.com/apikey">Google AI Studio</a>; chưa có khóa vẫn dịch được bằng Google Dịch). Rồi ghim tiện ích lên thanh công cụ: <span id="pin-hint">bấm biểu tượng mảnh ghép, chọn ghim cạnh <b>Charlie Vietsub</b></span>.</li>
   </ol>
   <p class="foot">Từ giờ không cần làm gì thêm: giọng đọc tự chạy mỗi khi bật máy, và bản mới tự được cài vào lần mở trình duyệt kế tiếp. Dùng nhiều trình duyệt thì làm lại 4 bước này trong từng trình duyệt, cùng một thư mục.</p>
 </main>
@@ -68,10 +68,10 @@
   const B = (() => {
     if (/Edg\//.test(ua)) return { name: "Edge", url: "edge://extensions",
       dev: "Ở cột bên trái trang vừa mở, bật <b>Chế độ nhà phát triển</b> (Developer mode). Cửa sổ hẹp thì bấm biểu tượng ☰ ở góc trên bên trái để hiện cột đó.",
-      pin: "bấm biểu tượng mảnh ghép trên thanh công cụ, rồi bấm hình con mắt cạnh <b>Vietnamese Subtitle Translator</b>" };
+      pin: "bấm biểu tượng mảnh ghép trên thanh công cụ, rồi bấm hình con mắt cạnh <b>Charlie Vietsub</b>" };
     if (/OPR\//.test(ua)) return { name: "Opera", url: "opera://extensions",
       dev: "Ở góc trên bên phải trang vừa mở, bật <b>Chế độ nhà phát triển</b> (Developer mode).",
-      pin: "bấm biểu tượng khối lập phương trên thanh công cụ, rồi bấm ghim cạnh <b>Vietnamese Subtitle Translator</b>" };
+      pin: "bấm biểu tượng khối lập phương trên thanh công cụ, rồi bấm ghim cạnh <b>Charlie Vietsub</b>" };
     if (/coc_coc_browser/i.test(ua)) return { name: "Cốc Cốc", url: "chrome://extensions" };
     if (navigator.brave && typeof navigator.brave.isBrave === "function") return { name: "Brave", url: "brave://extensions" };
     if (/Vivaldi/.test(ua + brands)) return { name: "Vivaldi", url: "vivaldi://extensions" };

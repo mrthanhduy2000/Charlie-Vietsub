@@ -28,7 +28,7 @@ if [ -z "$changed" ]; then
     # Compares with the local copy of origin/main, so it works offline and costs no network call.
     ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null)
     [ -n "$ahead" ] && [ "$ahead" -gt 0 ] 2>/dev/null || exit 0
-    printf '{"decision":"block","reason":"PUSH REQUIRED: %s commit(s) are not on GitHub yet (origin, private repo mrthanhduy2000/vietnamese-subtitle-translator). Run git push. The gh credentials are in the macOS keychain, which the Bash sandbox cannot read: on an auth or keychain error retry with the sandbox disabled. Never force-push. If it still cannot reach GitHub, say so in one line and stop."}\n' "$ahead"
+    printf '{"decision":"block","reason":"PUSH REQUIRED: %s commit(s) are not on GitHub yet (origin, private repo mrthanhduy2000/Charlie-Vietsub). Run git push. The gh credentials are in the macOS keychain, which the Bash sandbox cannot read: on an auth or keychain error retry with the sandbox disabled. Never force-push. If it still cannot reach GitHub, say so in one line and stop."}\n' "$ahead"
     exit 0
 fi
 

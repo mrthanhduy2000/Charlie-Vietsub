@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds the public share repo (github.com/mrthanhduy2000/vietnamese-subtitle-translator) that friends
+// Builds the public share repo (github.com/mrthanhduy2000/Charlie-Vietsub) that friends
 // install from: the extension's runtime files under extension/, the two installers and the patched
 // VieNeu server file. Nothing else of this private repo (docs, tests, tools, review data) goes out.
 //   node tools/publish-share.js                  build into ../vietnamese-subtitle-translator-share
@@ -341,7 +341,7 @@ if (require.main === module) {
         catch (e) { console.log("Nothing to commit."); }
         if (args.includes("--stage")) {
             git("push", "origin", "HEAD:refs/heads/share-staging");
-            console.log("Staged: the install test runs on staging (gh run list -R mrthanhduy2000/vietnamese-subtitle-translator). " +
+            console.log("Staged: the install test runs on staging (gh run list -R mrthanhduy2000/Charlie-Vietsub). " +
                 "When it is green: node tools/publish-share.js --promote");
         } else git("push");
     }

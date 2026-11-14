@@ -62,7 +62,7 @@ under `tests/harness/` and the vm file lists in `cost`, `hardening` and `ui` tes
 | `site-ted.js` | 47 | TED adapter (HLS subtitles from `__NEXT_DATA__` playerData) | registers on `CST_SITES` |
 | `screen-text.js` | 224 | On-screen subtitles: watches the frame's caption band, sends one crop per new caption to `readScreenText` (2.6.4) | `CST_SCREEN` |
 | `lang-detect.js` | 286 | Source language, structural reliability, comparable-track evidence and source notices without AI calls | `CST_LANG` |
-| `version-history.js` | 2341 | Release history data (one entry per version, Vietnamese) for the Settings > Lịch sử phiên bản tab. Single source; `ui.test.js` pins entry 0 to `manifest.version` | `CST_HISTORY` |
+| `version-history.js` | 2348 | Release history data (one entry per version, Vietnamese) for the Settings > Lịch sử phiên bản tab. Single source; `ui.test.js` pins entry 0 to `manifest.version` | `CST_HISTORY` |
 | `version-check.js` | 142 | Warns when the loaded extension version differs from the version on disk | `CST_VERSION_CHECK` |
 | `theme.js` | 42 | Light/Dark theme for the popup and settings page. Applies instantly from `localStorage` to avoid a flash, then syncs from `storage.sync`. Loaded by `popup.html` and `options.html` only, not a content script | `window.CST_THEME` |
 | `build-info.js` | 6 | **Generated** by `tools/bump-version.js`. Never edit | `CST_BUILD` |
@@ -123,7 +123,7 @@ the `vieneu-pin.py` download, whose lock goes with them), then the server; only 
 whose command line holds that VieNeu folder are touched. ASCII only (5.1 reads BOM-less as ANSI).
 
 **Share build.** Friends install from a separate **public** repo,
-`github.com/mrthanhduy2000/vietnamese-subtitle-translator`, cloned next to this one as
+`github.com/mrthanhduy2000/Charlie-Vietsub`, cloned next to this one as
 `../dich-phu-de-long-tieng`. `node tools/publish-share.js --stage` rebuilds it from here and pushes the
 build to the repo's `staging` branch, where the install test runs; `--promote` then pushes that same
 commit to `main` only when the test passed on it (it refuses a commit not on `staging`, a run still
@@ -153,7 +153,7 @@ own environment via `ps eww` on macOS, nothing in `~/.cache`), a spoken line, re
 update (downloads 0 MB of model), uninstall; a sixth job downloads every release asset with no
 fallback and **fails when the release is missing**. So the order is: publish the model release first
 (`--release-model`), then push. Check it after publishing
-(`gh run list -R mrthanhduy2000/vietnamese-subtitle-translator`). **Friends' installs update themselves**:
+(`gh run list -R mrthanhduy2000/Charlie-Vietsub`). **Friends' installs update themselves**:
 `tools/dichphude-update.py` (copied to `<VieNeu>/dichphude-update.py`, the extension path in
 `<VieNeu>/.dichphude-ext`) asks GitHub every 6 h, stages a newer version in `<VieNeu>/.dpd-staged`,
 and lays it over the extension folder only while the browser holding it is closed (a browser reads an
@@ -275,3 +275,11 @@ open, deduplicates the Reload banner, and compares both disk version and commit 
 
 The pre-push guard also compares committed runtime files and manifest versions with origin/main.
 A changed runtime with an unchanged version is rejected even if its author forgot the change note.
+
+## Local project identity
+
+The working directory is `/Users/damduy/Downloads/Charlie Vietsub`. The former
+`vietnamese-subtitle-translator-v1.0.4` path is a compatibility symlink, not a second checkout.
+Keep it while Chrome Profile 42 loads extension `lpknjhmnlocilmkmooomffknibghibao`
+from that path; removing it breaks Reload and loading from a new path can change the extension ID.
+The GitHub repository is `mrthanhduy2000/Charlie-Vietsub`.

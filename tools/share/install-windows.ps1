@@ -1,8 +1,8 @@
 # Cai (hoac cap nhat) tien ich "Dich Phu De & Long Tieng AI" va may chu giong VieNeu tren Windows.
-#   irm https://raw.githubusercontent.com/mrthanhduy2000/vietnamese-subtitle-translator/share/install-windows.ps1 | iex
+#   irm https://raw.githubusercontent.com/mrthanhduy2000/Charlie-Vietsub/share/install-windows.ps1 | iex
 # Chay lai bat cu luc nao de cap nhat: cai dat va khoa API trong trinh duyet duoc giu nguyen.
 # Go bo:
-#   $env:DPD_UNINSTALL='1'; irm https://raw.githubusercontent.com/mrthanhduy2000/vietnamese-subtitle-translator/share/install-windows.ps1 | iex
+#   $env:DPD_UNINSTALL='1'; irm https://raw.githubusercontent.com/mrthanhduy2000/Charlie-Vietsub/share/install-windows.ps1 | iex
 #
 # ASCII only on purpose: Windows PowerShell 5.1 reads a BOM-less script as ANSI. Everything sits in
 # one script block that throws instead of calling exit, because `irm | iex` runs in the user's own
@@ -17,7 +17,7 @@ $ProgressPreference = 'SilentlyContinue'   # the 5.1 progress bar makes download
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $global:DPD_RESULT = 'running'
 
-$Repo = 'mrthanhduy2000/vietnamese-subtitle-translator'
+$Repo = 'mrthanhduy2000/Charlie-Vietsub'
 # VieNeu is pinned: vieneu\openai_speech.py is a patched copy of this exact commit's file.
 $VieNeuCommit = 'd350c63fceb0792d7b2db9a51d61cc040b1f8efa'
 $ExtDir = if ($env:DPD_EXT_DIR) { $env:DPD_EXT_DIR } else { Join-Path $env:USERPROFILE 'DichPhuDe' }
@@ -105,7 +105,7 @@ try {
         Remove-Item $UpdCmd, $OldUpdLink -ErrorAction SilentlyContinue
         Write-Host ''
         Write-Host ' DA GO XONG. Con mot buoc: o trang Tien ich cua trinh duyet (chrome://extensions,'
-        Write-Host ' Edge: edge://extensions), bam "Xoa" tren the "Vietnamese Subtitle Translator".'
+        Write-Host ' Edge: edge://extensions), bam "Xoa" tren the "Charlie Vietsub".'
         $global:DPD_RESULT = 'ok'
         return
     }
@@ -275,7 +275,7 @@ try {
     Write-Host '=================================================================='
     if ($update) {
         Write-Host " DA CAP NHAT len ban $version. Thoat han trinh duyet roi mo lai la dung ban moi"
-        Write-Host ' (hoac bam Tai lai tren the "Vietnamese Subtitle Translator" o trang'
+        Write-Host ' (hoac bam Tai lai tren the "Charlie Vietsub" o trang'
         Write-Host ' chrome://extensions). Dung go tien ich roi cai lai: se mat cai dat va khoa API.'
     } else {
         Write-Host " DA CAI ban $version. Con mot buoc lam bang tay trong trinh duyet: lam theo"

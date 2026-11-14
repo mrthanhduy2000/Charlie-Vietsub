@@ -1,23 +1,17 @@
-# Handoff (2026-11-07, lane A with D worker/cache prompt, tests/tools and release integration)
+# Handoff (2026-11-14, lane C with D release/install metadata)
 
 ## Current state
-- Release 3.2.2 adds local context/scoped terminology in context-engine.js, content.js, background.js.
-- Local domain uses target text plus two neighbours each side, never the title as a forced sense.
-  High/medium/low is keyword evidence; ties, weak targets and unsupported text abstain.
-- Mixed windows carry numbered domains/sense hints. Names retained verbatim can have entity scope;
-  ordinary learned terms cannot cross scopes. One-speaker selfRef persists through topic changes.
-- Learned terms require source/output presence. Two distinct excerpts support agreed usage; retries
-  do not add votes, conflicting forms stay advisory, refined output removes stale term/pronoun votes.
-- ctxterms tuples add scope/provenance/bounded excerpts. Legacy entries are not trusted by counts.
-  No purge, glossary expansion, full-video cache invalidation or new model action was added.
-- Known SENSES ambiguity is deferred in builtin protection; user choices win. Only affected window
-  keys include deferred matches; mixed domains join keys in order. Learned hints remain outside keys.
-- Term output retains five-entry/one-in-three-window bounds, now scoped to current subject.
-- docs/measurements/local-context-2026-11-07.json records corpus hashes, controls and limits.
-- npm test: 1,187 pass, zero fail, two skips; 20 new context/provenance/cache cases.
-- Chrome API probe passed; regression baseline 45 videos + 24 scenarios saved for 3.2.2.
-- Previous 3.2.1 source integrity is not audio accuracy; legacy src is not actual fallback identity.
-  New sourceTrack keeps actual language/kind. Automatic ASR remains off; no new paid evaluation.
+- Release 3.2.3 renames the extension to Charlie Vietsub in manifest, popup, settings and onboarding.
+- GitHub repository renamed to mrthanhduy2000/Charlie-Vietsub; origin and current install links updated.
+- Working folder: /Users/damduy/Downloads/Charlie Vietsub.
+- The former folder name is a compatibility symlink, not a duplicate checkout.
+- Chrome Profile 42 still uses that old path and extension ID lpknjhmnlocilmkmooomffknibghibao.
+- npm test: 1,187 pass, zero fail, two skips; local build verification passed after commit.
+- No translation, dubbing, storage schema, model default or settings migration changed.
+- Previous 3.2.2 local context/scoped terminology and preservation constraints remain in place.
+- Old Downloads copies (three folders, five ZIPs, 94.1 MiB) were moved to Trash, not purged.
+- Old GitHub repos translator and dich-phu-de-long-tieng remain: CLI lacks delete_repo permission.
+- Codex sidebar project rename could not be automated: computer access to Codex is blocked.
 
 ## Unfinished
 - Fresh ASR accuracy, CPU/latency/cost and full-video semantic truth remain unmeasured.
@@ -32,14 +26,12 @@
 - Carry forward native fullscreen, real-page overlay fade, sparse notice on iYL-UuNE_9w,
   TED embed/hold issues, Mac auto-update install and old UI redesign-note reconciliation.
 
+- Finish deleting the two old GitHub repositories after the user supplies authenticated access.
+- The Codex sidebar label may still show the old project name; rename it manually.
+
 ## Traps
-- Import before setUnits is normal. Do not discard imported term evidence when setting new units.
-- Evidence counts are usage consistency, not votes for truth. Do not promote old tuples by counts.
-- Refinement replaces a unit: counting both drafts inflated selfRef and terminology confidence.
-- The same term in multiple item scopes must not enter one flat forced glossary hint.
-- Deferred protection must join normal AND legacy window keys to avoid reviving old fixed meanings.
-- Whole saved-video translations stay intact; new policy applies when translation is requested.
-- Exact-source entity scope does not validate translated names or distinguish multiple speakers.
-- Source structure and track disagreement still do not establish which text matches speech.
-- Complete FIFO speech, speed caps, continuous playback and the auto model default are unchanged.
-- Reload at chrome://extensions and refresh video tabs; never remove/reinstall or overwrite settings.
+- Keep the old-path symlink: removing/reinstalling or loading the new path can lose access to settings.
+- Click Reload at chrome://extensions; never remove the extension and Load unpacked again.
+- GitHub renames do not update origin automatically when gh repo rename uses --repo.
+- Brand and metadata changes do not establish real-provider translation or listening quality.
+- Preserve complete FIFO speech and auto model selection; no shortening of dubbing lines.

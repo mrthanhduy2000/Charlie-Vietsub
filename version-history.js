@@ -4,6 +4,13 @@
 (function (root) {
     const HISTORY = [
         {
+            v: "3.2.3", luc: "14/11/2026", ten: "Đổi tên thành Charlie Vietsub",
+            y: [
+                "Tiện ích hiển thị tên Charlie Vietsub trong Chrome, cửa sổ tiện ích và trang cài đặt.",
+                "Cập nhật đường dẫn dự án và GitHub theo tên mới, giữ nguyên dữ liệu cài đặt hiện có."
+            ]
+        },
+        {
             v: "3.2.2", luc: "07/11/2026", ten: "Ngữ cảnh và thuật ngữ theo từng đoạn",
             y: [
                 "Nhận diện lĩnh vực theo đoạn hiện tại và phần lân cận, kèm mức bằng chứng; gợi ý nghĩa được gắn với từng mục thay vì áp chủ đề đầu video lên toàn bài.",
