@@ -7,6 +7,18 @@ dependencies, no build step: these source files *are* the extension, loaded unpa
 "Profile 42", id `lpknjhmnlocilmkmooomffknibghibao`. All source sits flat in the repo root. Most
 existing comments and test names are Vietnamese; what new ones use is in **Language** below.
 
+## Canonical project
+
+The user keeps only Charlie Vietsub for subtitle translation and dubbing.
+- Work only in `/Users/damduy/Downloads/Charlie Vietsub` and push every update to
+  `https://github.com/mrthanhduy2000/Charlie-Vietsub` on `main`.
+- Do not recreate the deleted `translator` or `dich-phu-de-long-tieng` repositories,
+  alternate install folders, or old project copies unless the user explicitly requests one.
+- The old folder path is only a compatibility symlink for the existing Chrome extension ID.
+  Keep it until a settings-preserving migration is verified; do not load a second extension.
+- Check the remote `main` manifest and commit when reporting the installed/source version;
+  old share branches, release assets and archived screenshots may have older versions.
+
 ## Session start, in this order
 
 1. `git log --oneline -5 && git status --short` -> what the last session did. Far cheaper than

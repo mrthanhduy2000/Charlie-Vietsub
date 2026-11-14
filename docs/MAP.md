@@ -283,3 +283,7 @@ The working directory is `/Users/damduy/Downloads/Charlie Vietsub`. The former
 Keep it while Chrome Profile 42 loads extension `lpknjhmnlocilmkmooomffknibghibao`
 from that path; removing it breaks Reload and loading from a new path can change the extension ID.
 The GitHub repository is `mrthanhduy2000/Charlie-Vietsub`.
+
+The user keeps Charlie Vietsub as the only active subtitle/dubbing project. The old GitHub
+repositories `translator` and `dich-phu-de-long-tieng` were deleted on 2026-11-14.
+All maintenance and pushes use this checkout and `origin/main`; do not recreate old projects.

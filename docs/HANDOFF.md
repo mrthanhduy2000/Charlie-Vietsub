@@ -10,7 +10,8 @@
 - No translation, dubbing, storage schema, model default or settings migration changed.
 - Previous 3.2.2 local context/scoped terminology and preservation constraints remain in place.
 - Old Downloads copies (three folders, five ZIPs, 94.1 MiB) were moved to Trash, not purged.
-- Old GitHub repos translator and dich-phu-de-long-tieng remain: CLI lacks delete_repo permission.
+- Deleted old GitHub repos translator and dich-phu-de-long-tieng via authenticated Chrome.
+- Only Charlie-Vietsub is canonical; AGENTS.md/CLAUDE.md record the user's single-project policy.
 - Codex sidebar project rename could not be automated: computer access to Codex is blocked.
 
 ## Unfinished
@@ -26,12 +27,12 @@
 - Carry forward native fullscreen, real-page overlay fade, sparse notice on iYL-UuNE_9w,
   TED embed/hold issues, Mac auto-update install and old UI redesign-note reconciliation.
 
-- Finish deleting the two old GitHub repositories after the user supplies authenticated access.
 - The Codex sidebar label may still show the old project name; rename it manually.
 
 ## Traps
 - Keep the old-path symlink: removing/reinstalling or loading the new path can lose access to settings.
 - Click Reload at chrome://extensions; never remove the extension and Load unpacked again.
-- GitHub renames do not update origin automatically when gh repo rename uses --repo.
+- GitHub main was verified at dab8c24 / manifest 3.2.3; screenshot 3.0.9 was the deleted share repo.
+- CLI lacks delete_repo; authenticated Chrome deletion succeeded with user confirmation.
 - Brand and metadata changes do not establish real-provider translation or listening quality.
 - Preserve complete FIFO speech and auto model selection; no shortening of dubbing lines.
