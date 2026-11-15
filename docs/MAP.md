@@ -292,3 +292,7 @@ The GitHub repository is `mrthanhduy2000/Charlie-Vietsub`.
 The user keeps Charlie Vietsub as the only active subtitle/dubbing project. The old GitHub
 repositories `translator` and `dich-phu-de-long-tieng` were deleted on 2026-11-14.
 All maintenance and pushes use this checkout and `origin/main`; do not recreate old projects.
+
+Final audit on 2026-11-15: the retired extension ID is absent from both Profile 42
+Preferences and Secure Preferences after Chrome restart. No stale registration remains;
+do not remove or reinstall the active canonical ID. Its key, voice and subtitle settings remain.
