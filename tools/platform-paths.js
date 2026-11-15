@@ -4,7 +4,7 @@
 const os = require("node:os");
 const path = require("node:path");
 
-const EXT_ID = "lpknjhmnlocilmkmooomffknibghibao";
+const EXT_ID = "alijbbmpkioojdegjipbbhmlgchpfgof";
 const PROFILE = "Profile 42";
 
 function chromeUserData(platform = process.platform, env = process.env, home = os.homedir()) {

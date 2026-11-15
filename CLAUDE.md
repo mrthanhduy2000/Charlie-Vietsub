@@ -2,9 +2,9 @@
 
 Chrome MV3 extension: translates Coursera/YouTube subtitles into Vietnamese with Gemini, plus AI
 dubbing. **`manifest.json` holds the real version**; version numbers in docs may be stale.
-The working folder is `Charlie Vietsub`; the old `v1.0.4` path is a Chrome compatibility symlink. No bundler, no
+The working folder is `Charlie Vietsub`; Chrome loads this exact path after settings migration. No bundler, no
 dependencies, no build step: these source files *are* the extension, loaded unpacked in Chrome
-"Profile 42", id `lpknjhmnlocilmkmooomffknibghibao`. All source sits flat in the repo root. Most
+"Profile 42", id `alijbbmpkioojdegjipbbhmlgchpfgof`. All source sits flat in the repo root. Most
 existing comments and test names are Vietnamese; what new ones use is in **Language** below.
 
 ## Canonical project
@@ -14,8 +14,8 @@ The user keeps only Charlie Vietsub for subtitle translation and dubbing.
   `https://github.com/mrthanhduy2000/Charlie-Vietsub` on `main`.
 - Do not recreate the deleted `translator` or `dich-phu-de-long-tieng` repositories,
   alternate install folders, or old project copies unless the user explicitly requests one.
-- The old folder path is only a compatibility symlink for the existing Chrome extension ID.
-  Keep it until a settings-preserving migration is verified; do not load a second extension.
+- Chrome now loads the canonical folder directly under ID `alijbbmpkioojdegjipbbhmlgchpfgof`.
+  Settings were migrated on 2026-11-15. Do not recreate the retired old-path symlink or load a second copy.
 - Check the remote `main` manifest and commit when reporting the installed/source version;
   old share branches, release assets and archived screenshots may have older versions.
 

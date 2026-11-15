@@ -76,6 +76,14 @@ The dubbing engine has a fourth leg of its own (1.9.2): the `<video>` attributes
 A new engine claims them at `start()`; an old one that sees another owner stops at its next tick and
 never touches the volume again. Removing them brings back volume left at 0.01 after a Reload.
 
+**Unpacked path migration (2026-11-15).** A symlink does not reliably preserve the unpacked
+extension ID when Chrome reloads it. Charlie Vietsub now loads the real canonical folder under
+`alijbbmpkioojdegjipbbhmlgchpfgof`; the old `lpknjhmnlocilmkmooomffknibghibao` registration
+must not be used. Back up before a path migration, copy local data only while Chrome is closed,
+restore settings through the extension's supported import flow, then restart and verify the key,
+voices, style and single active copy. Raw copying of the sync database was overwritten at startup.
+The old-ID reload examples below are historical; use the current ID from `tools/platform-paths.js`.
+
 **Clicking Reload for the user (2026-10-10).** Do it from a `chrome://extensions` tab, with what the
 button itself calls: `chrome.developerPrivate.reload("lpknjhmnlocilmkmooomffknibghibao", { failQuietly: true })`,
 then `chrome.developerPrivate.getExtensionInfo(id)` must show the new version and `ENABLED`. Probed in

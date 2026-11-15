@@ -278,10 +278,15 @@ A changed runtime with an unchanged version is rejected even if its author forgo
 
 ## Local project identity
 
-The working directory is `/Users/damduy/Downloads/Charlie Vietsub`. The former
-`vietnamese-subtitle-translator-v1.0.4` path is a compatibility symlink, not a second checkout.
-Keep it while Chrome Profile 42 loads extension `lpknjhmnlocilmkmooomffknibghibao`
-from that path; removing it breaks Reload and loading from a new path can change the extension ID.
+The working directory is `/Users/damduy/Downloads/Charlie Vietsub`. Chrome Profile 42 loads
+this exact directory under extension ID `alijbbmpkioojdegjipbbhmlgchpfgof`.
+On 2026-11-15, reloading the former symlinked path changed the ID. The original local store
+was copied while Chrome was closed; all 48 settings, including the API key, were restored via
+Settings > Backup > Import so Chrome sync would preserve them. Settings survived another restart.
+The old-path symlink was retired into the private migration backup, preventing the old registration
+from loading after restart. Do not recreate it. `tools/platform-paths.js` targets the new store.
+Private recovery data lives under `~/Library/Application Support/Charlie Vietsub/`;
+never commit it, display its secrets, or treat raw sync-database copying as a completed migration.
 The GitHub repository is `mrthanhduy2000/Charlie-Vietsub`.
 
 The user keeps Charlie Vietsub as the only active subtitle/dubbing project. The old GitHub

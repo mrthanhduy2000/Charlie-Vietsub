@@ -1,17 +1,20 @@
-# Handoff (2026-11-15, canonical checkout and GitHub policy)
+# Handoff (2026-11-15, Chrome path migration and verification, lane D)
 
 ## Current state
-- The user reaffirmed: every future update must change this local extension and reach GitHub.
-- Only working extension checkout: /Users/damduy/Downloads/Charlie Vietsub.
-- Only canonical remote: https://github.com/mrthanhduy2000/Charlie-Vietsub, branch main.
-- AGENTS.md and CLAUDE.md record the single-project policy; do not recreate old project copies.
-- The former v1.0.4 folder is a compatibility symlink, not a duplicate checkout.
-- Chrome Profile 42 uses that old path and extension ID lpknjhmnlocilmkmooomffknibghibao.
-- Old GitHub repositories translator and dich-phu-de-long-tieng were deleted with confirmation.
-- The local Git updater targets this checkout and origin/main.
-- This handover changes documentation only; no extension runtime or version change.
-- Handover full suite: 1,187 pass, zero fail, two skips; no pending release notes.
-- Preserve existing translation, dubbing, storage, auto model and complete FIFO speech behavior.
+- Charlie Vietsub runtime remains 3.2.3; only maintainer tools/docs changed this turn.
+- Canonical checkout: /Users/damduy/Downloads/Charlie Vietsub; origin is Charlie-Vietsub/main.
+- Chrome Profile 42 now loads the real folder as alijbbmpkioojdegjipbbhmlgchpfgof.
+- Initial inspection found Chrome still running commit 94238bc while disk/GitHub were 13329d8.
+- Reload changed the extension ID because Chrome resolved the renamed/symlinked folder.
+- With user consent Chrome was closed; local/sync stores were backed up and local data copied.
+- Raw sync-database copying did not preserve settings through Chrome startup; supported import did.
+- All 48 original settings were imported, including Gemini key, Kim Thanh voice and Lexend style.
+- Key connection succeeded in Settings; key/voice/style survived another Chrome restart.
+- Old-path symlink was retired into the private backup; only one Charlie toolbar button remains.
+- Old registration metadata remains in Chrome but its path no longer exists; it cannot load.
+- Backup: ~/Library/Application Support/Charlie Vietsub/migration-backup-20261115-013300/.
+- tools/platform-paths.js, AGENTS.md/CLAUDE.md and docs now identify the new extension/store.
+- Full offline suite: 1,187 pass, zero fail, two skips; no runtime release note required.
 
 ## Unfinished
 - Fresh ASR accuracy, CPU/latency/cost and full-video semantic truth remain unmeasured.
@@ -29,8 +32,7 @@
 - The Codex sidebar label may still show the old project name; rename it manually.
 
 ## Traps
-- Keep the compatibility symlink until a settings-preserving migration has been verified.
-- Reload at chrome://extensions after runtime changes; never remove and reinstall the extension.
-- Verify remote main manifest and commit before reporting versions; old share assets can be stale.
-- Every update requires handover, local build verification and a successful push to the new origin.
-- Runtime changes on main require release notes and the centralized release step before final tests.
+- A symlink is not an extension-ID preservation mechanism; do not recreate the retired old path.
+- Never expose the private backup or API key. Restore settings via supported import, not raw sync DB.
+- Reload only the canonical extension after runtime updates; never remove/reinstall the active copy.
+- Verify browser runtime separately from the popup's disk version; source equality alone is insufficient.
