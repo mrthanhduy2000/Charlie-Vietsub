@@ -73,6 +73,14 @@ test('a long source silence ends the planning horizon', () => {
     assert.equal(e.paragraphRate(p, r, p.start, 0, 1, { floor: 0.95, ceiling: 1.3 }), 1);
     assert.equal(e.paragraph, undefined);
 });
+test('predicted takes use the same raw duration units as rendered takes', () => {
+    const e = engine(), p = e.plans[0];
+    e.provider.tempo = { targetSps: 5, maxTempo: 1.3 };
+    e.provider.naturalSps = () => 4;
+    assert.ok(e.baseTempo(p) > 1);
+    const duration = p.phrases.reduce((sum, ph) => sum + ph.syl, 0) / 4;
+    assert.equal(e.estimateDuration(p).duration, duration);
+});
 test('forecast respects tighter rate steps inside a continuing sentence', () => {
     const items = [item(0, 5), item(5, 10, { stepUp: 0.03 }), item(10, 10, { stepUp: 0.03 })];
     const r = planParagraph(items, { time: 0 });

@@ -371,11 +371,11 @@
             async init() { return true; },
             // Khóa kho audio: mọi thứ QUYẾT ĐỊNH âm thanh (không dùng mã video) ->
             // cùng câu, cùng giọng, cùng kiểu đọc ở video khác vẫn dùng lại được.
-            audioKey(plan) {
+            audioKey(plan, voice = provider.voices[plan.speaker] || provider.voices.S1) {
                 const pace = plan.sps > 5.2 ? "fast" : plan.sps < 3.8 ? "slow" : "normal";
                 return CACHE.hashKey([
                     "audio", TTS_STYLE_VERSION, settings.ttsModel || DEFAULT_TTS_MODEL,
-                    provider.voices[plan.speaker] || provider.voices.S1,
+                    voice,
                     CACHE.normalizeText(plan.text).toLowerCase(),
                     plan.intent || "neutral", (plan.emphasisWords || []).map(w => w.toLowerCase()).sort(), pace
                 ]);
@@ -385,12 +385,13 @@
             // khoảng lặng và LƯU KHO từng đoạn (theo khóa gửi kèm) trước khi trả lời:
             // tab đóng hay trả lời bị mất thì audio đã trả tiền vẫn còn.
             async render(plans, ctx = {}) {
-                const speaker = plans[0].speaker;
-                const keys = await Promise.all(plans.map(p => p.audioKey || provider.audioKey(p)));
+                const first = plans[0];
+                const voice = first.voiceTag || provider.voices[first.speaker] || provider.voices.S1;
+                const keys = await Promise.all(plans.map(p => p.audioKey || provider.audioKey(p, voice)));
                 const res = await env.sendMessage({
                     action: "synthesizeSpeech",
                     text: geminiScript(plans, ctx),
-                    voice: provider.voices[speaker] || provider.voices.S1,
+                    voice,
                     model: settings.ttsModel || "",
                     jobId: ctx.jobId,
                     parts: plans.map((p, k) => ({ key: keys[k], weight: p.phrases.reduce((a, ph) => a + ph.syl, 0) }))
@@ -403,7 +404,7 @@
                     throw err;
                 }
                 return res.parts.map((sp, k) => ({
-                    planId: plans[k].id, wav: AUDIO.base64ToBytes(sp.wav), duration: sp.duration, sampleRate: sp.sampleRate, cached: !!res.fromCache
+                    planId: plans[k].id, audioKey: keys[k], wav: AUDIO.base64ToBytes(sp.wav), duration: sp.duration, sampleRate: sp.sampleRate, cached: !!res.fromCache
                 }));
             }
         };
@@ -496,10 +497,10 @@
                 // (~0,6 giây) trong khi lợi ích chỉ ~0,2 giây ở lượt đầu của mỗi giọng
                 return !!(r && r.running);
             },
-            audioKey(plan) {
+            audioKey(plan, voice = provider.voices[plan.speaker] || provider.voices.S1) {
                 const plain = plainScript(plan);
                 const base = ["audio-local", LOCAL_STYLE_VERSION, L.model, L.sampleRate,
-                    provider.voices[plan.speaker] || provider.voices.S1, CACHE.normalizeText(speakScript(plan)).toLowerCase(),
+                    voice, CACHE.normalizeText(speakScript(plan)).toLowerCase(),
                     PROSODY && PROSODY.signature ? PROSODY.signature(plain) : ""];
                 // Câu dày chữ tạo với khoảng nghỉ ngắn hơn: khóa kho riêng (không dùng lẫn audio thường)
                 // (BACKLOG 48) a loose line's take with longer punctuation pauses: a key per slack step
@@ -509,10 +510,11 @@
             async render(plans, ctx = {}) {
                 const out = [];
                 for (const p of plans) {
-                    const key = p.audioKey || await provider.audioKey(p);
+                    const voice = p.voiceTag || provider.voices[p.speaker] || provider.voices.S1;
+                    const key = p.audioKey || await provider.audioKey(p, voice);
                     const res = await env.sendMessage({
                         action: "synthesizeSpeech", engine: L.id,
-                        text: plainScript(p), speak: speakScript(p), voice: provider.voices[p.speaker] || provider.voices.S1,
+                        text: plainScript(p), speak: speakScript(p), voice,
                         jobId: ctx.jobId, parts: [{ key, weight: p.phrases.reduce((a, ph) => a + ph.syl, 0) }],
                         maxPause: p.tightPauses ? L.tightPause : undefined, breath: breathAt(p),
                         slack: !p.tightPauses && p.slackPauses > 0 ? p.slackPauses : undefined
@@ -527,7 +529,7 @@
                     const sp = res.parts[0];
                     let wav;
                     try { wav = AUDIO.base64ToBytes(sp.wav); } catch (e) { const err = new Error("Audio VieNeu hỏng (base64)"); err.type = "invalid"; throw err; }
-                    out.push({ planId: p.id, wav, duration: sp.duration, sampleRate: sp.sampleRate, cached: !!res.fromCache, timing: res.timing || null });
+                    out.push({ planId: p.id, audioKey: key, wav, duration: sp.duration, sampleRate: sp.sampleRate, cached: !!res.fromCache, timing: res.timing || null });
                 }
                 return out;
             }
@@ -848,18 +850,28 @@
             const spoken = s0 == null ? null : { start: s0, end: passed ? passed.end : s0 };
             const script = this.oneVoice(PLAN.buildDubScript(groups, { headAt: free ? this.headAt : null, speakerTurns, spoken, ...(free ? FREE_SEGMENTS : {}) }));
             const opts = { voiceModel: this.provider.voiceModel };
-            const before = this.plans || [];
-            this.plans = this.keepMadeTakes(before, PLAN.planAll(script, opts), this.queueAt(t));
-            this.planById = new Map(this.plans.map(p => [p.id, p]));
+            const plans = PLAN.planAll(script, opts);
             // who reads each line: a take made in another voice (a speaker found later, a new cast)
             // is made again, as one made for other words is. By the voice, not the speaker: two
             // speakers sharing a voice (Gemini TTS past S2) make the same audio
-            for (const p of this.plans) p.voiceTag = this.voiceName(p.speaker);
+            for (const p of plans) p.voiceTag = this.voiceName(p.speaker);
+            const before = this.plans;
+            const previous = this.planById;
+            this.plans = this.keepMadeTakes(before, plans, this.queueAt(t));
+            this.planById = new Map(this.plans.map(p => [p.id, p]));
+            for (const p of this.plans) {
+                const old = previous.get(p.id);
+                if (!old || (old.text === p.text && old.srcText === p.srcText && old.continuesNext === p.continuesNext &&
+                    old.voiceTag === p.voiceTag && old.end === p.end)) continue;
+                this.cacheChecked.delete(p.id);
+                this.failed.delete(p.id);
+            }
             // Audio đã tạo cho lời thoại KHÁC (đoạn được cắt lại sau khi tua, bản dịch được sửa):
             // bỏ để tạo lại cho đúng lời, trừ đoạn đang nói
             for (const [id, r] of this.rendered) {
                 const p = this.planById.get(id);
-                const changed = p && ((r.text != null && r.text !== p.text) || (r.voiceTag != null && r.voiceTag !== p.voiceTag));
+                const changed = p && ((r.text != null && r.text !== p.text) || (r.voiceTag != null && r.voiceTag !== p.voiceTag) ||
+                    (r.srcText != null && r.srcText !== p.srcText) || (r.continuesNext != null && r.continuesNext !== p.continuesNext));
                 if (changed && !(this.speech && this.speech.id === id)) {
                     if (r.el) this.releaseAudio(r);   // as in stop() and releaseOld(): not only its URL
                     if (r.url && this.d.revokeObjectURL) this.d.revokeObjectURL(r.url);
@@ -885,7 +897,7 @@
                 if (!inside.length || Math.abs(inside[0].start - o.start) > 1e-6 || Math.abs(inside[inside.length - 1].end - o.end) > 1e-6) continue;
                 if (inside.length === 1 && inside[0].text === o.text) continue;
                 if (norm(inside.map(p => p.text).join(" ")) !== norm(o.text)) continue;
-                if (inside.some(p => p.speaker !== o.speaker)) continue;
+                if (inside.some(p => p.speaker !== o.speaker || p.voiceTag !== o.voiceTag)) continue;
                 out = out.filter(p => !inside.includes(p));
                 out.push(o);
             }
@@ -1321,7 +1333,7 @@
         baseTempo(p) {
             const cfg = this.provider.tempo;
             if (!cfg) return 1;
-            const sps = this.voiceSps.get(p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : cfg.targetSps);
+            const sps = this.voiceSps.get(p.voiceTag || p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : cfg.targetSps);
             return Math.max(1, Math.min(cfg.maxTempo, cfg.targetSps / Math.max(1, sps)));
         }
 
@@ -1336,7 +1348,7 @@
             const cfg = this.provider.tempo;
             let f = SYNC.minSpeechRate;
             if (cfg && cfg.minSps) {
-                const sps = this.voiceSps.get(p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : cfg.minSps);
+                const sps = this.voiceSps.get(p.voiceTag || p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : cfg.minSps);
                 f = Math.max(f, Math.min(cfg.maxFloor || 1.15, cfg.minSps / Math.max(1, sps)));
             }
             const vr = Math.max(1, (this.d.video && this.d.video.playbackRate) || 1);
@@ -1378,7 +1390,7 @@
             if (!p) return null;
             const syl = p.phrases.reduce((a, ph) => a + ph.syl, 0);
             const r = this.rendered.get(p.id);
-            const sps = this.voiceSps.get(p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4.5);
+            const sps = this.voiceSps.get(p.voiceTag || p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4.5);
             const natural = r && r.duration ? r.duration : syl / Math.max(1, sps);
             const next = ps[i + 1];
             let end = p.start + (p.targetDuration || 0) + SYNC.fitSlack;
@@ -1390,7 +1402,7 @@
         // Rate limits for this moment: the fixed ones, widened for a fast-speaking stretch
         paceLimits(p, t) {
             const pace = this.videoPace(t);
-            const sps = this.voiceSps.get(p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4.5);
+            const sps = this.voiceSps.get(p.voiceTag || p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4.5);
             const spsCap = SYNC.maxSpokenSps / Math.max(1, sps);
             const vr = Math.max(1, (this.d.video && this.d.video.playbackRate) || 1);
             let ceiling = Math.max(SYNC.maxSpeechRate, Math.min(SYNC.paceCeilingMax, pace.high * SYNC.paceCeilingPad, spsCap));
@@ -1407,8 +1419,9 @@
             const syl = p.phrases.reduce((sum, ph) => sum + ph.syl, 0);
             const nominal = this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4.5;
             const prediction = this.durationEstimator.predict(p, syl / Math.max(1, nominal));
-            const tempo = this.baseTempo(p);
-            return { ...prediction, duration: (prediction.duration + this.slackTotal(p)) / tempo, uncertainty: prediction.uncertainty / tempo };
+            // Both cached and predicted takes enter the planner at recorded speed. Its rate
+            // decision already converts the take's duration to media time.
+            return { ...prediction, duration: prediction.duration + this.slackTotal(p) };
         }
 
         paragraphRate(p, r, t, offset, reference, bounds) {
@@ -2095,6 +2108,7 @@
             const inWindow = p => (this.keepsSpeech() || p.start + p.estDuration >= t - 1) && (spoken == null || p.start > spoken) && !(fresh && (this.keepsSpeech() ? !this.queuedPlan(p) : p.end < t + 0.3)) && p.start <= to && !this.rendered.has(p.id) && !this.pending.has(p.id) && (this.failed.get(p.id) || 0) < 2 && !(fresh && !this.keepsSpeech() && this.unreachable(p, t));
             let todo = this.plans.filter(inWindow).sort((a, b) => a.start - b.start);
             if (!todo.length) return;
+            const first = todo[0];
 
             // Giọng MIỄN PHÍ (VieNeu) + người nói nhanh: câu (theo tốc độ ĐO THẬT của giọng) phải đọc
             // nhanh hơn 1,15x mới vừa khung -> tạo giọng với khoảng nghỉ trong câu ngắn hơn (0,15 giây).
@@ -2112,13 +2126,12 @@
             const maxPlans = this.provider.caps.maxBatch || SYNC.maxBatchPlans;
             const cached = !!(this.d.audioCache && this.provider.audioKey);
             const spill = p => p.start > to && p.start <= to + SYNC.batchSpill && !this.rendered.has(p.id) && !this.pending.has(p.id);
-            const unchecked = todo.concat(maxPlans > 1 ? this.plans.filter(spill) : []).filter(p => !this.cacheChecked.has(p.id)).slice(0, 8);
-            if (unchecked.length && cached) {
+            if (cached && !this.cacheChecked.has(first.id)) {
+                const unchecked = todo.concat(maxPlans > 1 ? this.plans.filter(spill) : [])
+                    .filter(p => !this.cacheChecked.has(p.id)).slice(0, 8);
                 this.lookupCache(unchecked);
                 return;
             }
-
-            const first = todo[0];
 
             // 2. TTS: gộp các đoạn liền nhau cùng người nói, không vượt tầm nhìn. Lượt đầu
             // sau khi bật / tua chỉ lấy một câu ngắn để có tiếng ngay (audio nhỏ về nhanh hơn).
@@ -2226,14 +2239,14 @@
         looseSlack(p) {
             if (!(SYNC.slackMax > 0) || !PROSODY || !PROSODY.pauseSlack) return 0;
             const memo = this.slackMemo || (this.slackMemo = new Map());
-            const id = p.speaker + "|" + p.text;
+            const id = (p.voiceTag || p.speaker) + "|" + p.text;
             if (!memo.has(id)) { if (memo.size > 4000) memo.clear(); memo.set(id, this.looseSlackNow(p)); }
             return memo.get(id);
         }
 
         looseSlackNow(p) {
             const syl = p.phrases.reduce((a, ph) => a + ph.syl, 0);
-            const sps = this.voiceSps.get(p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4);
+            const sps = this.voiceSps.get(p.voiceTag || p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4);
             const i = this.plans.indexOf(p);
             const next = i >= 0 ? this.plans[i + 1] : null;
             const joined = !!(p.continuesNext && next);
@@ -2257,7 +2270,7 @@
         // Đo thật (1.2.9): ước theo tốc độ mục tiêu thấy "vừa khung" trong khi audio thật dài gấp 1,3.
         denseRatio(p) {
             const syl = p.phrases.reduce((a, ph) => a + ph.syl, 0);
-            const sps = this.voiceSps.get(p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4);
+            const sps = this.voiceSps.get(p.voiceTag || p.speaker) || (this.provider.naturalSps ? this.provider.naturalSps(p.speaker) : 4);
             const i = this.plans.indexOf(p);
             const next = i >= 0 ? this.plans[i + 1] : null;
             const win = Math.max(0.8, next ? Math.min(next.start - p.start, (p.targetDuration || 0) + 1.5) : (p.targetDuration || 0) + 0.25);
@@ -2355,7 +2368,9 @@
             // được chọn lúc bắt đầu nói (chooseRate) để nhịp đều giữa các câu
             const stretch = this.baseTempo(p);
             const url = this.d.createObjectURL(wav);
-            this.rendered.set(p.id, { url, duration, stretch, fit: duration / slot, overflow: duration / stretch - slot, text: p.text, voiceTag: p.voiceTag, stops: this.findStops(wav, duration), slack: this.slackTotal(p) });
+            this.rendered.set(p.id, { url, duration, stretch, fit: duration / slot, overflow: duration / stretch - slot,
+                text: p.text, srcText: p.srcText, continuesNext: p.continuesNext, voiceTag: p.voiceTag,
+                stops: this.findStops(wav, duration), slack: this.slackTotal(p) });
         }
 
         // Where the voice resumes after each stop inside the take (seconds), for entryPoint. ~0.5 ms
@@ -2436,7 +2451,7 @@
                     // keyed by the voice that made this audio, not the one current now (a switch to
                     // the fallback mid-flight stored the old voice's take under the new voice's key)
                     if (this.d.audioCache && provider.audioKey) {
-                        const key = p.audioKey || await provider.audioKey(p);
+                        const key = o.audioKey || p.audioKey || await provider.audioKey(p);
                         this.d.audioCache.put(key, { wav: o.wav, duration: o.duration, sampleRate: o.sampleRate });
                     }
                     if (!this.running || !session.accepts(leases.get(o.planId), this.provider)) continue;
@@ -2505,8 +2520,9 @@
             const predicted = this.durationEstimator.predict(p, syl / Math.max(1, nominal));
             this.durationEstimator.observe(p, duration, syl / Math.max(1, nominal));
             if (predicted.samples >= 5 && Math.abs(duration - predicted.duration) > Math.max(0.3, predicted.uncertainty * 3)) return;
-            const cur = this.voiceSps.get(p.speaker);
-            this.voiceSps.set(p.speaker, cur ? cur + (sps - cur) * 0.25 : sps);
+            const voice = p.voiceTag || p.speaker;
+            const cur = this.voiceSps.get(voice);
+            this.voiceSps.set(voice, cur ? cur + (sps - cur) * 0.25 : sps);
         }
 
         // The AI voice's real speaking rate, measured from the audio received -> better duration

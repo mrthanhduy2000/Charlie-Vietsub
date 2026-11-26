@@ -32,8 +32,8 @@ sense of weight, not an assertion.
 |---|---|---|
 | `source-reliability.test.js` | 25 | Structural evidence, metadata uncertainty, harmless segmentation/music, comparable-track limits, bounded selection/stale guards, generic track ranking and actual-versus-first-choice cache provenance. |
 | `preservation.test.js` | 12 | Numeric/unit/date/code conservation, narrow polarity/comparison contradictions, format/idiom abstention, candidate veto/atomic alignment, uncertainty and real refine prompt. |
-| `paragraph-pace.test.js` | 14 | Multi-sentence horizon, hard caps/FIFO, natural speed, phrase steps, pending translation/silence boundaries, per-voice robust duration learning and uncertainty. |
-| `dub-session.test.js` | 19 | Session transitions, playback versus synthesis leases, stale cache/render/live callbacks, replacement failures, EOF pending translations, invalid timings and every browser loader. |
+| `paragraph-pace.test.js` | 15 | Multi-sentence horizon, hard caps/FIFO, natural speed, phrase steps, pending translation/silence boundaries, per-voice robust duration learning and uncertainty. |
+| `dub-session.test.js` | 20 | Session transitions, playback versus synthesis leases, stale cache/render/live callbacks, replacement failures, EOF pending translations, invalid timings and every browser loader. |
 | `dub-full-speech.test.js` | 14 | FIFO beyond lag limits, late first takes, missing translations, planning/eviction/jobs, long source silences, manual seek/pause, natural EOF drain, speed changes, ads and live fallback. |
 | `dub-onset.test.js` | 4 | Initial/seek predecode, paused startup without a hold, redundant-zero-seek avoidance and playback-onset accounting across resume. |
 | `translation-progress.test.js` | 10 | Empty-answer salvage, selective fallback, partial checkpoint resume, source/track identity, completion cleanup, bounds and concurrent worker writes. |
@@ -45,7 +45,7 @@ sense of weight, not an assertion.
 | `context.test.js` | 20 | `context-engine.js` domain detection, sense and phrase hints, `ContextSession`, plus `vi-quality.js` |
 | `local-context.test.js` | 20 | Local topic shifts, scoped source/output evidence, uncertainty, name/pronoun continuity, deferred glossary rules and cache separation |
 | `integration.test.js` | 25 | Runs the **real** `content.js` and `background.js` in a `vm` with a fake `chrome`, fake DOM and fake Gemini |
-| `dub.test.js` | 115 | Dub script, prosody, duration fitting, real WAV fixtures, sync under pause / seek / rate change |
+| `dub.test.js` | 118 | Dub script, prosody, duration fitting, real WAV fixtures, sync under pause / seek / rate change |
 | `cost.test.js` | 61 | The full LOCAL -> CACHE -> cheap -> strong -> TTS chain, plus `cst-cache`, `cost-policy`, `dub-planner`, `dub-engine` |
 | `hardening.test.js` | 116 | Per-API-key model access, options opening, language auto-detect, no-clipping dubbing, budget caps, the version-scheme rule |
 | `bridge.test.js` | 10 | `yt-bridge.js` recovering empty captions that are missing the `pot` token, and restoring the viewer's original caption track |

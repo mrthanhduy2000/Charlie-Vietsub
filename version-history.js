@@ -4,6 +4,14 @@
 (function (root) {
     const HISTORY = [
         {
+            v: "3.2.4", luc: "26/11/2026", ten: "Sửa nhịp đọc và phân vai lồng tiếng",
+            y: [
+                "Gửi tạo giọng cho câu tới lượt ngay khi biết câu đó chưa có âm thanh lưu sẵn, không chờ tra bộ nhớ đệm của các câu sau. Dự báo thời lượng dùng cùng đơn vị với âm thanh đã tạo để chọn tốc độ nhất quán hơn.",
+                "Lấy ngữ điệu và gợi ý phát âm từ phụ đề nguồn nằm trong đoạn đang đọc. Nhịp đã học đi theo giọng đọc thực tế khi phân vai thay đổi.",
+                "Bỏ qua mốc phân vai lặp do nhiều nhóm dùng chung phụ đề và giữ kết quả phân vai đúng video, đúng bản phụ đề. Âm thanh tạo trước luôn dùng đúng giọng ghi trong khóa bộ nhớ đệm."
+            ]
+        },
+        {
             v: "3.2.3", luc: "14/11/2026", ten: "Đổi tên thành Charlie Vietsub",
             y: [
                 "Tiện ích hiển thị tên Charlie Vietsub trong Chrome, cửa sổ tiện ích và trang cài đặt.",

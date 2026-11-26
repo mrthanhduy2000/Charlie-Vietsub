@@ -1,36 +1,37 @@
-# Handoff (2026-11-15, final old-registration audit, lane D documentation)
+# Handoff (2026-11-26, dubbing delivery, lane B)
 
 ## Current state
-- Canonical extension: Charlie Vietsub 3.2.3; no runtime changes in this handover.
-- Local checkout: /Users/damduy/Downloads/Charlie Vietsub; GitHub Charlie-Vietsub/main.
-- Chrome Profile 42 loads ID alijbbmpkioojdegjipbbhmlgchpfgof directly from the canonical folder.
-- Rechecked Preferences and Secure Preferences: old ID lpknjhmnlocilmkmooomffknibghibao is absent.
-- Chrome removed the stale registration after the previous restart; no manual deletion was needed.
-- Live Settings showed one Charlie toolbar button, API key present, Kim Thanh voice and Lexend font.
-- Do not remove/reinstall the active extension or change its path; the retained settings are intact.
-- Previous migration restored 48 settings through supported import after raw sync DB copying failed.
-- Old symlink remains retired; do not recreate it. Old GitHub projects remain deleted.
-- Private recovery backup: ~/Library/Application Support/Charlie Vietsub/migration-backup-20261115-013300/.
-- Updated documentation and durable memory to supersede the earlier residual-registration warning.
-- Full offline suite: 1,187 pass, zero fail, two skips; no pending release notes.
+- Charlie Vietsub 3.2.4 in the canonical checkout and GitHub Charlie-Vietsub/main.
+- Chrome Profile 42 loads ID alijbbmpkioojdegjipbbhmlgchpfgof from this folder. Reload after updating.
+- Dubbing reads use the full timed caption track and the current playback engine as scope.
+- Shared source cues cannot duplicate speaker marks. Source context for speech uses the segment span.
+- Voice selection is captured with the cache key; stale source or cast work cannot replace current audio.
+- Duration forecasts use recorded take units, and learned speed follows the actual TTS voice.
+- A confirmed cache miss on the next take can proceed before looking up later takes.
+- Dubbing still preserves subtitle content in order while video plays and drains remaining speech at EOF.
+- Measurement used offline playback and read-only archived/Chrome captions. No audio was played.
+- npm test: 1,193 pass, 0 fail, 2 skips. Across 145 videos, 16,481 segments kept all their words.
+- Simulated late starts 1,890 to 1,889. Recorded startup was unchanged; gap time 6.56 s to 6.77 s.
+- The 45-video and 24-scenario regression run's three small trade-offs are recorded in DUBBING.md.
 
 ## Unfinished
+- Live audio, speaker attribution accuracy and source-meaning judgments remain unverified.
+- Dense speech can build up queued delay, especially with a slow server or a low rate cap.
 - Fresh ASR accuracy, CPU/latency/cost and full-video semantic truth remain unmeasured.
-- Complex clause completeness, causality, conditions, arbitrary names and pronouns remain unverified;
-  consistent term usage and refinement checklists are not independent semantic correctness labels.
+- Complex clause completeness, causality, conditions, arbitrary names and pronouns remain unverified.
 - Natural local domains/senses have no human annotation; keyword evidence remains English-oriented.
   Current corpus measurements do not establish real-provider translation improvement or billed cost.
 - Source/audio mismatch needs an independent reference; a structurally clean track may disagree.
   The saved Russian-source discrepancy remains unresolved (one prior ASR excerpt conflict).
-- Multi-speaker attribution, glossary loading/UI states and full-video/source-meaning listening remain.
+- Glossary loading/UI states remain open.
 - Documentary 9T1Nvtn3QOk: earlier inspection only 39-43 minutes, no complete ytcache4 record.
 - Carry forward native fullscreen, real-page overlay fade, sparse notice on iYL-UuNE_9w,
   TED embed/hold issues, Mac auto-update install and old UI redesign-note reconciliation.
-
 - The Codex sidebar label may still show the old project name; rename it manually.
 
 ## Traps
-- Chrome can remove an invalid unpacked registration after restart; recheck before deleting anything.
-- A symlink does not preserve unpacked extension identity. Keep the canonical directory stable.
-- Never expose private recovery data or API keys. Preserve the migration backup separately from Git.
-- Reload only the canonical extension after updates; source and browser runtime need separate checks.
+- Never identify a YouTube reading by its media element; navigation can reuse it.
+- Cache keys must describe the voice that actually made the audio, including during cast updates.
+- The corpus and simulator check structure and delivery, without labeled answers for speaker identity.
+- Never expose private recovery data or API keys. Keep the migration backup outside Git.
+- Keep the canonical directory stable. Reload the existing extension to retain its settings.

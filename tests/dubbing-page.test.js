@@ -117,6 +117,48 @@ function video(over = {}) {
     return v;
 }
 
+test("speaker analysis follows the active caption track even when YouTube reuses its video element", async () => {
+    const pending = [];
+    const E = env({ sync: { useAi: true, geminiApiKey: "test" }, onMessage: msg => {
+        if (msg.action === "analyzeSpeakers") return new Promise(resolve => pending.push(resolve));
+        return msg.action === "localTtsStatus" ? { running: true } : null;
+    } });
+    const v = video({ paused: true, duration: 30, volume: 1, closest: () => null });
+    const first = Array.from({ length: 8 }, (_, i) => ({ start: i * 2, end: i * 2 + 1,
+        srcCues: [{ start: i * 2, end: i * 2 + 1, text: `This is a complete sentence about the subject, number ${i}.` }] }));
+    const changed = first.map((g, i) => i === 3 ? { ...g, srcCues: [{ ...g.srcCues[0], text: "The new track has different words in the middle." }] } : g);
+    const answer = { ok: true, confidence: "high", speakers: [{ id: 1 }], turns: [{ line: 0, speaker: 1 }] };
+    const startRead = async groups => {
+        const received = [];
+        const Engine = E.S.CST_DUB_ENGINE.DubEngine;
+        E.S.CST_DUB_ENGINE = { ...E.S.CST_DUB_ENGINE, DubEngine: class extends Engine {
+            setSpeakerHints(h) { received.push(h); }
+        } };
+        assert.equal(await E.API.start({ video: v, getGroups: () => groups }), true);
+        return received;
+    };
+    const old = await startRead(first);
+    const active = await startRead(changed);
+    assert.equal(pending.length, 2, "the same endpoints do not identify the full track");
+    pending[0](answer);
+    await new Promise(setImmediate);
+    assert.equal(active.length, 0);
+    assert.equal(old.length, 0);
+    const restarted = await startRead(changed);
+    assert.equal(pending.length, 2, "restarting on the same track reuses analysis");
+    pending[1](answer);
+    await new Promise(setImmediate);
+    assert.equal(restarted.length, 1);
+
+    E.S.location.href = "https://www.youtube.com/watch?v=another";
+    const navigating = await startRead(first);
+    E.S.location.href = "https://www.youtube.com/watch?v=new";
+    pending[2](answer);
+    await new Promise(setImmediate);
+    assert.equal(navigating.length, 0);
+    E.API.stop();
+});
+
 test("prepareHold: no hold when ready, with no video, during an ad, or while another hold is active", () => {
     const E = env({ realTimers: true });
     const v = video();

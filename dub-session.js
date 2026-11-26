@@ -101,12 +101,14 @@
             return { lifetime: this.lifetime, sourceId: this.sourceId, ...(playback ? { revision: this.revision } : {}) };
         }
         lease(plan, provider) {
-            return { ...this.token(), provider, id: plan.id, start: plan.start, end: plan.end, text: plan.text, voiceTag: plan.voiceTag };
+            return { ...this.token(), provider, id: plan.id, start: plan.start, end: plan.end,
+                text: plan.text, srcText: plan.srcText, continuesNext: plan.continuesNext, voiceTag: plan.voiceTag };
         }
         current(lease) { return !!lease && lease.lifetime === this.lifetime && lease.sourceId === this.sourceId && (lease.revision == null || lease.revision === this.revision) && this.phase !== 'stopped'; }
         accepts(lease, provider) {
             const p = lease && this.planById.get(lease.id);
-            return !!(this.current(lease) && provider === lease.provider && p && p.start === lease.start && p.end === lease.end && p.text === lease.text && p.voiceTag === lease.voiceTag);
+            return !!(this.current(lease) && provider === lease.provider && p && p.start === lease.start && p.end === lease.end &&
+                p.text === lease.text && p.srcText === lease.srcText && p.continuesNext === lease.continuesNext && p.voiceTag === lease.voiceTag);
         }
         snapshot({ time, live = null, speech = null, rendered = new Map(), pending = new Map(), failed = new Map(), tolerance = 0 } = {}) {
             const next = this.lastSpokenStart == null ? this.entryPlan(time, tolerance).plan : this.plans.find(p => this.queued(p));

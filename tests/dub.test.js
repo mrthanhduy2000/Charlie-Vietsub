@@ -6,7 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const PLAN = require("../dub-planner.js");
 const AUDIO = require("../dub-audio.js");
-const { DubEngine, geminiScript } = require("../dub-engine.js");
+const { DubEngine, geminiScript, createVieneuProvider } = require("../dub-engine.js");
 const seg = require("../vi-segmenter.js");
 const { Clock, FakeVideo, FakeAudio, makeFakeSpeech, lectureGroups } = require("./dub-sim.js");
 
@@ -54,6 +54,49 @@ test("kịch bản: '>>' đổi người nói, giọng được gán theo ngư�
 // videos (54-94% of a vlog in the other voice) and missed the turns inside a group
 const S = (vi, start, end, text) => group(vi, [{ start, end, text }]);
 const voices = (groups, opts) => PLAN.buildDubScript(groups, opts).map(x => x.speaker);
+
+test("shared source captions cannot invent speaker turns or change their order", () => {
+    const groups = talk();
+    const expected = PLAN.speakerTurns(groups);
+    const shared = groups.map((g, i) => ({ ...g, srcCues: [...g.srcCues, ...(groups[i - 1]?.srcCues || [])] }));
+    assert.deepEqual(PLAN.speakerTurns(shared), expected);
+    assert.deepEqual(PLAN.speakerLines(shared), PLAN.speakerLines(groups));
+});
+
+test("a VieNeu render keeps its original voice and cache key during a recast", async () => {
+    const requests = [];
+    const provider = createVieneuProvider({ async sendMessage(request) {
+        requests.push(request);
+        return { ok: true, parts: [{ wav: "AQ==", duration: 1 }] };
+    } }, {});
+    const plan = PLAN.planSegment(PLAN.buildDubScript(talk())[1]);
+    const voice = provider.voices[plan.speaker];
+    const key = await provider.audioKey(plan);
+    const pending = provider.render([plan]);
+    const secondVoice = require("../cost-policy.js").LOCAL_TTS.voices.find(v => v.id === voice);
+    provider.setCast(["unknown", secondVoice.gender === "Nam" ? "female" : "male"]);
+    assert.notEqual(provider.voices[plan.speaker], voice);
+    const [result] = await pending;
+    assert.equal(requests[0].voice, voice);
+    assert.equal(requests[0].parts[0].key, key);
+    assert.equal(result.audioKey, key);
+});
+
+test("a later spoken segment uses the source cues and opener inside its own span", () => {
+    const cues = [
+        { start: 0, end: 2, text: "Now, are we ready?" },
+        { start: 2, end: 4, text: "The equipment is ready." },
+        { start: 6, end: 8, text: "Okay, let's continue." }
+    ];
+    const lines = ["Bây giờ, ta sẵn sàng chưa?", "Thiết bị đã sẵn sàng.", "Được rồi, ta tiếp tục."];
+    const g = { start: 0, end: 8, srcCues: cues, viText: lines.join(" "),
+        viCues: cues.map((c, i) => ({ ...c, text: lines[i] })) };
+    const script = PLAN.buildDubScript([g], { segSoft: 1 });
+    assert.equal(script.length, 3);
+    assert.deepEqual(script.map(s => s.srcText), cues.map(c => c.text));
+    assert.deepEqual(script.map(s => s.sourcePauses.some(p => p.opener)), [true, false, true]);
+    assert.equal(PLAN.planSegment(script[1]).intent, "neutral");
+});
 
 test("who speaks: a one-person video stays in one voice (music marks, lone marks, a credit, a colon)", () => {
     // lzXgzP1Dayw: the recognizer marks the music inside a sentence

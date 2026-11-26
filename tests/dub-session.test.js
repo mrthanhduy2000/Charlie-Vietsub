@@ -53,7 +53,8 @@ test('source changes and stop/start reject old work even with identical plan IDs
     assert.equal(s.accepts(b, provider), false);
 });
 test('changed text, timing, voice or provider rejects old synthesized content', () => {
-    for (const patch of [{ text: 'Refined words' }, { end: 9 }, { voiceTag: 'another' }]) {
+    for (const patch of [{ text: 'Refined words' }, { end: 9 }, { voiceTag: 'another' },
+        { srcText: 'Different surrounding words' }, { continuesNext: true }]) {
         const s = session(), provider = {}, p = s.plans[0], lease = s.lease(p, provider);
         s.planById.set(p.id, { ...p, ...patch }); assert.equal(s.accepts(lease, provider), false);
     }
@@ -168,4 +169,22 @@ test('a seek near the end of an uncached entry still schedules that entry', () =
     const batches = []; e.renderBatch = batch => batches.push(batch);
     e.schedule(video.currentTime);
     assert.ok(batches.flat().some(x => x.id === p.id), 'the FIFO entry must not be excluded from synthesis'); e.stop();
+});
+
+test('a confirmed cache miss at the head starts synthesis before checking later takes', () => {
+    const { e, video, provider } = env();
+    const first = e.plans[0];
+    assert.ok(e.plans.length > 1);
+    video.currentTime = first.start;
+    e.hardReset('seek');
+    e.headProbe = null;
+    e.d.audioCache = {};
+    provider.audioKey = p => p.id;
+    e.cacheChecked.add(first.id);
+    const batches = [];
+    e.renderBatch = batch => batches.push(batch);
+    e.lookupCache = () => assert.fail('a later cache lookup must not delay the head');
+    e.schedule(video.currentTime);
+    assert.equal(batches[0][0], first);
+    e.stop();
 });

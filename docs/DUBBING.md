@@ -627,6 +627,9 @@ on the labelled podcast UIy-WQCZd4M "about you because--" / "ANDREW HUBERMAN: Ri
 Vietnamese line, and the voice now changes at the label in 14 of 14 such lines (3 of 14 before).
 The result also carries `voices` (how many are heard) and `genders` (by rank, from the AI).
 
+Speaker detection and the AI input share a chronological stream of unique source cues. A cue
+shared by translation groups can contribute each of its turns only once.
+
 **AI reading (2.5.2, YouTube).** `dubbing.js` `readSpeakers` asks once per video, after
 `engine.start()`, when the mode is "auto", `dubSpeakerAi` is on (default), AI is on with a key, the
 video has 8 lines or more and its labels are not complete. `PLAN.speakerLines(groups)` gives the
@@ -651,7 +654,11 @@ its answer still comes it is charged at its real counts and kept in the cache.
 (`findAt`: the line named, the one after or before, also running on into the next line); a turn
 named by its line alone that opens on the tail of a sentence hands over after it ends
 (`afterSentenceTail`: "pain. Over to you."). `mergeSpeakerHints` joins the parts,
-`DubEngine.setSpeakerHints` bumps `hintsRev` and replans. `acceptAiTurns` (only when the labels are
+`DubEngine.setSpeakerHints` bumps `hintsRev` and replans. The page shares in-flight readings only
+for the same video and full timed caption track. Only the current subscriber receives results.
+Prerender requests and both cache layers use the same voice captured for the take; model results
+coming back after a recast cannot change the active voice or seed its cache.
+`acceptAiTurns` (only when the labels are
 not complete):
 - confidence "low": ignored;
 - a turn within `AI_SNAP_S` 2 s of a caption mark moves onto the mark;
@@ -1764,8 +1771,9 @@ using busy media startup and full queue drain. The output records input hashes a
 needed. `dub-engine.js` builds a maximum six-plan horizon (`SYNC.paragraphHorizon`), ending at a
 source silence longer than two seconds or a pending earlier translation. Beam width is eight.
 The forecast uses made audio durations first; unknown takes use the voice/text-class predictor,
-with a small bounded uncertainty reserve after five observations. Raw durations are converted
-through the existing base tempo and slack shaping exactly once.
+with a small bounded uncertainty reserve after five observations. Both inputs describe the take
+at its recorded speed, including pause slack. Each candidate rate converts to media time once.
+Voice-speed samples follow the selected TTS voice when the cast changes.
 
 Each candidate propagates `start = max(source earliest, previous end + rest)` and
 `end = start + duration / rate`. Cost combines positive start lag (0.7), finish overflow (0.35),
@@ -1789,3 +1797,28 @@ MAD spread with a minimum floor. The existing voice-SPS and model calibration up
 normal EMA behavior, adding robust outlier guards; calibration histories are separate per voice.
 Unknown/short/invalid samples cannot assert confidence. No network, extra synthesis or paid call
 is required for learning. `debugSnapshot().paragraph` exposes the bounded forecast decisions.
+
+Source context for intent, pronunciation and opener detection uses only cues that overlap the
+spoken segment. A cue already underway when the segment begins cannot supply its earlier opener
+(50 ms timing tolerance). Once an entry's cache miss is established, later unchecked takes do
+not delay its synthesis. For a provider that batches, only already-checked neighbors may join it.
+
+The 3.2.4 structural comparison used 145 distinct saved videos from the review archive and the
+read-only Chrome export. On unchanged segment spans/text, 126 opener hints were removed and four
+were added across 28 videos; 230 intent classifications moved across 57. No shared duplicate
+source cues or changes to heuristic speaker turns appeared in these saved inputs. Synthetic
+fixtures exercise duplicate turns, reused media elements, track changes and a cast race.
+The corpus has no listening judgments or independent speaker labels for these counts.
+Over those same 145 inputs, busy playback read 16,481 segments with no dropped or repeated
+words in either version. Late starts fell from 1,890 to 1,889. First audio was unchanged.
+Silence gaps fell from 50 to 49, while their total rose from 6.56 s to 6.77 s. The cache
+priority change increased measured gap time on three videos (0.12 s, 0.35 s and 0.11 s).
+The duration forecast reduced it on three (0.12 s, 0.13 s and 0.12 s).
+
+The 45-video regression suite and 24 playback scenarios retained all spoken words without
+duplication. Archived silence fell from 24 to 21 gaps and from 2.98 s to 2.61 s total.
+Scenario late starts fell from 134 to 132, with 39.64 s to 38.47 s of silence. Isolating the
+cache priority change reproduced two 41-to-42 blob-URL peaks during a fast slowdown and
+shifted the longest gap in the busy 2x case from 0.93 s to 0.94 s, with 1.51 s total there.
+These are the trade-offs of generating the due take sooner; the forecast change did not cause
+those three changes.

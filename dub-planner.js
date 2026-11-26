@@ -513,7 +513,7 @@
                 if (g >= 0.25 && c.end > start && c.end < end) pauses.push({ frac: (c.end - start) / span, dur: g });
             }
             // "Now... / So, um," trong lời gốc: nhịp mở đầu
-            if (i === 0 && OPENERS_EN.test(c.text) && /^\s*\S+(?:\s\S+)?\s*(?:,|\.\.\.|…)/.test(c.text)) {
+            if (i === 0 && c.start >= start - 0.05 && OPENERS_EN.test(c.text) && /^\s*\S+(?:\s\S+)?\s*(?:,|\.\.\.|…)/.test(c.text)) {
                 pauses.push({ frac: 0.06, dur: 0.3, opener: true });
             }
         }
@@ -662,10 +662,9 @@
         const ai = opts.ai || null;
         const memo = turnsMemo && Array.isArray(groups) ? turnsMemo.get(groups) : null;
         if (memo && memo.n === groups.length && memo.ai === ai) return memo.turns;
-        const list = (groups || []).filter(g => g && g.srcCues && g.srcCues.length).sort((a, b) => a.start - b.start);
         const pieces = [];                       // { t, text, kind: null | "anon" | "named", name }
         let endT = 0;
-        for (const g of list) for (const c of g.srcCues) {
+        for (const c of sourceCaptions(groups)) {
             endT = Math.max(endT, c.end);
             const text = String(c.text || "");
             const parts = text.split(">>");
@@ -682,6 +681,7 @@
                 pieces.push({ t, text: p, kind, name });
             });
         }
+        pieces.sort((a, b) => a.t - b.t);
         const speech = p => !!p && !!p.text && !TURN_NOTE.test(p.text);
         const anon = [];
         for (let j = 0; j < pieces.length; j++) {
@@ -828,20 +828,22 @@
     // groups once), sound-only lines left out. The answer names lines by their index in this list.
     // Captions cut into short pieces (half of them under JOIN_SHORT characters, as recognizer
     // captions are) go joined into sentences (joinCaptionLines).
-    function speakerLines(groups) {
-        const seen = new Set();
-        const out = [];
-        for (const g of (groups || []).filter(x => x && x.srcCues).sort((a, b) => a.start - b.start)) {
-            for (const c of g.srcCues) {
-                const text = String(c.text || "").replace(/\s+/g, " ").trim();
-                const key = c.start + "|" + text;
-                if (!text || seen.has(key) || TURN_NOTE.test(text)) continue;
-                seen.add(key);
-                out.push({ start: c.start, end: c.end, text });
-            }
+    function sourceCaptions(groups) {
+        const captions = new Map();
+        for (const g of groups || []) for (const c of g?.srcCues || []) {
+            const text = String(c.text || "").replace(/\s+/g, " ").trim();
+            const key = c.start + "|" + text;
+            if (!captions.has(key)) captions.set(key, c);
         }
+        return [...captions.values()].sort((a, b) => a.start - b.start);
+    }
+
+    function speakerLines(groups) {
+        const out = sourceCaptions(groups)
+            .map(c => ({ start: c.start, end: c.end, text: String(c.text || "").replace(/\s+/g, " ").trim() }))
+            .filter(c => c.text && !TURN_NOTE.test(c.text));
         const sizes = out.map(l => l.text.length).sort((a, b) => a - b);
-        const pieces = splitAtMarks(out);
+        const pieces = splitAtMarks(out).sort((a, b) => a.start - b.start);
         return sizes.length && sizes[sizes.length >> 1] < JOIN_SHORT ? joinCaptionLines(pieces) : pieces;
     }
     // A ">>" inside a caption line opens a line of its own (2.6.6), as it already did when short
@@ -1265,7 +1267,8 @@
             usedIds.add(id);
             const next = segments[i + 1];
             const subtitleText = (SEG ? SEG.cleanText(s.texts.join(" ")) : s.texts.join(" "));
-            const srcText = s.srcCues.filter(c => c.end > s.start - 0.05 && c.start < s.end + 0.05).map(c => c.text).join(" ");
+            const source = s.srcCues.filter(c => c.end > s.start && c.start < s.end);
+            const srcText = source.map(c => c.text).join(" ");
             const gapAfter = next ? next.start - s.end : 3;
             const slotEnd = next ? Math.max(s.end, Math.min(next.start - 0.12, s.end + 1.6)) : s.end + 2;
             return {
@@ -1279,7 +1282,7 @@
                 subtitleText,
                 speechSource: s.texts.join(" "),
                 srcText,
-                sourcePauses: sourcePausesIn(s.srcCues, s.start, s.end),
+                sourcePauses: sourcePausesIn(source, s.start, s.end),
                 // Câu CHƯA HẾT: không kết thúc bằng dấu câu kết câu, cùng người nói, đoạn sau tới trong
                 // 1,5 giây (trước: chỉ khi khoảng lặng < 0,3 giây -> phụ đề tự động có khoảng ngừng
                 // nhỏ giữa câu bị coi là hết câu, giọng dừng hẳn chờ phụ đề)
