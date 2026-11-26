@@ -45,16 +45,11 @@ async function readInParts(x, part, lab, fixed) {
     return out;
 }
 
-(async () => {
-    const q = new URLSearchParams(location.search);
-    const tag = q.get("tag") || "run";
-    const only = q.get("only") ? new Set(q.get("only").split(",")) : null;
-    const log = document.getElementById("log");
+async function runSpeakerLab(tag, only, report) {
     const run = (window.SPEAKER_LAB_RUNS || {})[tag] || null;
     // run.debug: the extension's own prompt and model, and an unusable answer comes back as it was
     // run.temperature: another sampling temperature than the extension's own
     const lab = run && (run.system || run.model || run.debug || run.temperature != null) ? { system: run.system || "", model: run.model || "", temperature: run.temperature, maxLines: run.part > 900 ? run.part : 0 } : undefined;
-    const t0run = Date.now();
     const items = (window.SPEAKER_LAB || []).filter(x => (!only || only.has(x.id + "." + x.variant)) &&
         (!run || !run.variants || run.variants.includes(x.variant)));
     const out = [];
@@ -74,8 +69,21 @@ async function readInParts(x, part, lab, fixed) {
         out.push(`${k + 1}/${items.length} ${x.id}.${x.variant} ` + (r && r.ok
             ? `ok ${r.model}${r.fromCache ? " cache" : ""} speakers=${r.speakers.length} turns=${r.turns.length} ${r.confidence}`
             : `FAIL ${JSON.stringify(r)}`) + ` ${Date.now() - t0}ms`);
-        log.textContent = out.join("\n");
+        report(out.join("\n"));
     }
-    log.textContent = out.join("\n") + `\nDONE ${tag}`;
-    document.title = `DONE ${tag}`;
+    return out.join("\n") + `\nDONE ${tag}`;
+}
+
+(async () => {
+    const q = new URLSearchParams(location.search);
+    const tags = (q.get("tags") || q.get("tag") || "run").split(",").filter(Boolean);
+    const only = q.get("only") ? new Set(q.get("only").split(",")) : null;
+    const log = document.getElementById("log");
+    const completed = [];
+    for (const tag of tags) {
+        const report = body => { log.textContent = [...completed, body].join("\n\n"); };
+        completed.push(await runSpeakerLab(tag, only, report));
+    }
+    log.textContent = completed.join("\n\n");
+    document.title = `DONE ${tags.join(",")}`;
 })();

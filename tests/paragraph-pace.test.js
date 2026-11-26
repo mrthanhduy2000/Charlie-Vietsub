@@ -55,9 +55,9 @@ test('invalid duration samples cannot poison predictions', () => {
     for (const v of [NaN, Infinity, -1, 0.2, 100]) assert.equal(e.observe(plan(), v, 5), false);
     assert.equal(e.predict(plan(), 5).duration, 5);
 });
-function engine() {
+function engine(settings = {}) {
     const clock = new Clock(), video = new FakeVideo();
-    const e = new DubEngine({ video, getGroups: lectureGroups, providers: { primary: { caps: { prerender: true }, voiceModel: { sylPerSec: 4.5, rateExp: 1, calibration: 1 } } }, now: () => clock.now() }, { keepAllSpeech: true, maxRate: 1 });
+    const e = new DubEngine({ video, getGroups: lectureGroups, providers: { primary: { caps: { prerender: true }, voiceModel: { sylPerSec: 4.5, rateExp: 1, calibration: 1 } } }, now: () => clock.now() }, { keepAllSpeech: true, maxRate: 1, ...settings });
     e.refresh(true); return e;
 }
 test('engine horizon respects user cap even under unavoidable overload', () => {
@@ -65,6 +65,34 @@ test('engine horizon respects user cap even under unavoidable overload', () => {
     const r = { duration: 20 };
     const rate = e.chooseRate(p, r, p.start, 0, 8);
     assert.ok(rate <= 1); assert.equal(e.paragraph.id, p.id); assert.ok(e.paragraph.horizon > 1);
+});
+test('complete speech budgets the following rest and startup before a dense transition', () => {
+    const choose = keepAllSpeech => {
+        const e = engine({ keepAllSpeech, maxRate: null });
+        const p = { ...e.plans[0], start: 0, end: 4, targetDuration: 4, continuesNext: false };
+        e.plans = [p, { ...e.plans[1], start: 4.2 }];
+        e.paceLimits = () => ({ ceiling: 1.3, lagCeiling: 1.4, floor: 0 });
+        e.paragraphRate = (_p, _r, _t, _offset, reference) => reference;
+        return e.chooseRate(p, { duration: 4.5 }, 0, 0, 0);
+    };
+    const rate = choose(true);
+    assert.ok(Math.abs(4.5 / rate + 0.18 + 0.15 - 4.2) < 1e-8);
+    assert.ok(rate > choose(false));
+});
+test('short actual rests limit changes in pace without overriding the user ceiling', () => {
+    const choose = (rest, maxRate) => {
+        const e = engine({ maxRate });
+        const [prev, p] = e.plans;
+        const time = p.start + 2;
+        e.lastSpokenId = prev.id;
+        e.lastRate = 1;
+        e.lastRateEnd = -Infinity;
+        e.lastSpeechEnd = time - rest;
+        return e.chooseRate(p, { duration: 20 }, time, 0, 2);
+    };
+    assert.ok(choose(0.2, null) <= 1.14);
+    assert.ok(choose(1, null) > 1.14);
+    assert.ok(choose(0.2, 1.05) <= 1.05);
 });
 test('a long source silence ends the planning horizon', () => {
     const e = engine(), p = e.plans[0], next = { ...e.plans[1], start: p.end + 20 };

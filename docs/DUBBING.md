@@ -699,6 +699,26 @@ The `v2` run averaged 90.2% on 29 plain tracks (one missing answer) and 93.5% on
 tracks. These are archived text predictions for PBS clips. The exact production prompt/model
 combination and text-to-speaker performance outside this news corpus were not tested live.
 
+**2026-11-26 live paired check.** The `n26base` run sent the exact production system
+prompt through the extension worker, with no speaker labels in any of the 30 edited PBS
+inputs. The `n26rev` run appended instructions to check both sides of a short interjection,
+distinguish the addressee from the speaker and quote a distinctive turn start. All 30 pairs
+completed on Gemini 3.1 Flash-Lite at temperature zero, with matching ordered line hashes.
+The test used only text.
+
+| Metric | Production prompt | Trial prompt |
+|---|---:|---:|
+| Mean word assignment accuracy across videos | 93.724% | 92.773% |
+| Pooled words assigned incorrectly | 2,366 / 35,381 | 2,721 / 35,381 |
+| Words whose whole turn kept the previous voice | 743 | 835 |
+| Words in whole turns assigned to another speaker | 368 | 661 |
+| Words assigned incorrectly near turn boundaries | 264 | 261 |
+| Words from people without their own voice | 991 | 964 |
+
+The trial improved 8 videos, worsened 10 and tied 12. The production prompt remains in use.
+These results measure text-only speaker estimates on edited English news excerpts without
+name labels. They do not measure speaker recognition from the audio.
+
 **Prompt 2 and the speaker lab (2.5.3).** Scored on 30 PBS NewsHour videos against their named
 transcripts (docs/TESTING.md "Speaker lab"): words in the right voice 81.5 -> 89.3% on
 recognizer-like captions ("plain"), 89.7 -> 93.5% on clean ones, people sharing a voice 20 -> 7.
@@ -1875,3 +1895,27 @@ lag summed to 3,142 s instead of 3,455 s. P95 moved from 1.110 s to 1.090 s; the
 over two seconds and the 10.136 s maximum were unchanged. Adjacent rate changes over 15%
 increased from 900 to 990. The trial is not enabled in production because it changes rhythm
 more often without improving the worst backlog. The corpus retained all 16,481 segments.
+
+### Release 3.2.5
+
+The complete-speech buffered controller now finishes against the next cue's actual planned
+rest plus 150 ms of startup allowance, and compares transition rates against the previous
+take that actually played. At a rest of at most 0.4 media seconds, the rate can rise by at
+most 14% relative to the previous take. At full stops it also limits the size of a slowdown
+when the provider and user ceilings allow it. Clause rests and speech order stay intact.
+A seek or an ordinary longer break may reset the pace.
+
+On the same 145 saved videos at 1x: 16,481 segments in both versions, zero lost or repeated
+words. Playback onsets more than 0.5 s late fell from 2,008 to 1,917, onsets past 1 s fell
+from 981 to 943, and total positive onset lag fell from 3,455 s to 3,151 s. P95 fell from
+1.11 s to 1.09 s. The 290 onsets over 2 s and maximum of 10.136 s were unchanged.
+Rate changes above 15% fell from 43 to 1 across rests of at most 0.4 s. They rose from
+53 to 65 across rests of 0.4–1 s and from 804 to 900 after rests over one second.
+The harness simulates playback rather than judging listening quality.
+
+On the standard suite, 45 archived videos had 1,339 to 1,283 scheduled late starts and
+2.61 s to 1.24 s of delivery gaps. Two individual values worsened. Replaying with only the
+finish allowance reproduced a 0.12-to-0.13 s gap and a 23-to-25 late-start count in
+the fast-to-slow scenario (P95 unchanged at 1.79 s). The short-rest smoothing on its own
+did not cause either change. The suite recorded zero drops and overlaps, with zero missing
+or repeated words in cases where the simulator accounts for words.

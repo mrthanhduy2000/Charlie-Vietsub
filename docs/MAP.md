@@ -31,7 +31,7 @@ under `tests/harness/` and the vm file lists in `cost`, `hardening` and `ui` tes
 | `content.js` | 3158 | Coursera engine, also serving any other video page on demand ("generic", see `SUBTITLE.md`), **plus** the shared toast/messaging layer | `window.CST_UI`, `window.CST_LAST_AI_INFO` |
 | `options.html` | 1561 | Settings page, 5 tabs (2.5.5): Phụ đề, Lồng tiếng, Dịch & AI (with the glossary), Chi phí & dữ liệu (cost with the top videos by period, cache, backup), Phiên bản (folded, 15 at first). Switches, one-line hints, seldom-changed fields under a `details.more` fold. ~900 lines are inline `<style>`; markup is only the rest | n/a |
 | `dub-session.js` | 143 | Shared pure speech-session lifecycle, FIFO cursor, EOF clock, ad resume, async leases and diagnostics | `CST_DUB_SESSION` |
-| `dub-engine.js` | 2911 | TTS providers + scheduler + video-clock sync + audio ducking | `CST_DUB_ENGINE` |
+| `dub-engine.js` | 2928 | TTS providers + scheduler + video-clock sync + audio ducking | `CST_DUB_ENGINE` |
 | `background.js` | 2355 | Service worker: the only place that talks to Gemini, does TTS, owns cache + cost ledger + per-key model access; reads who speaks (`analyzeSpeakers`, 2.5.2); opens Settings at `#welcome` after a first install | n/a (message router) |
 | `popup.css` | 868 | Popup styling only | n/a |
 | `options.js` | 1689 | Settings logic. No Save button: debounced autosave every 350ms, flushed on `pagehide` | n/a |
@@ -62,7 +62,7 @@ under `tests/harness/` and the vm file lists in `cost`, `hardening` and `ui` tes
 | `site-ted.js` | 47 | TED adapter (HLS subtitles from `__NEXT_DATA__` playerData) | registers on `CST_SITES` |
 | `screen-text.js` | 224 | On-screen subtitles: watches the frame's caption band, sends one crop per new caption to `readScreenText` (2.6.4) | `CST_SCREEN` |
 | `lang-detect.js` | 286 | Source language, structural reliability, comparable-track evidence and source notices without AI calls | `CST_LANG` |
-| `version-history.js` | 2356 | Release history data (one entry per version, Vietnamese) for the Settings > Lịch sử phiên bản tab. Single source; `ui.test.js` pins entry 0 to `manifest.version` | `CST_HISTORY` |
+| `version-history.js` | 2363 | Release history data (one entry per version, Vietnamese) for the Settings > Lịch sử phiên bản tab. Single source; `ui.test.js` pins entry 0 to `manifest.version` | `CST_HISTORY` |
 | `version-check.js` | 142 | Warns when the loaded extension version differs from the version on disk | `CST_VERSION_CHECK` |
 | `theme.js` | 42 | Light/Dark theme for the popup and settings page. Applies instantly from `localStorage` to avoid a flash, then syncs from `storage.sync`. Loaded by `popup.html` and `options.html` only, not a content script | `window.CST_THEME` |
 | `build-info.js` | 6 | **Generated** by `tools/bump-version.js`. Never edit | `CST_BUILD` |

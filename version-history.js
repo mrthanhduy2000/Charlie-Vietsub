@@ -4,6 +4,13 @@
 (function (root) {
     const HISTORY = [
         {
+            v: "3.2.5", luc: "26/11/2026", ten: "Giảm dồn trễ và giữ nhịp giữa các câu",
+            y: [
+                "Căn thời điểm kết thúc câu để chừa nhịp nghỉ và thời gian khởi phát của câu kế tiếp. Khi hai câu đọc sát nhau, giữ tốc độ chuyển nhẹ hơn và vẫn dùng giới hạn tốc độ đã chọn.",
+                "Các câu lồng tiếng tiếp tục được đọc đủ theo thứ tự, kể cả khi đoạn nói dày làm lời lồng tiếng chậm hơn video."
+            ]
+        },
+        {
             v: "3.2.4", luc: "26/11/2026", ten: "Sửa nhịp đọc và phân vai lồng tiếng",
             y: [
                 "Gửi tạo giọng cho câu tới lượt ngay khi biết câu đó chưa có âm thanh lưu sẵn, không chờ tra bộ nhớ đệm của các câu sau. Dự báo thời lượng dùng cùng đơn vị với âm thanh đã tạo để chọn tốc độ nhất quán hơn.",

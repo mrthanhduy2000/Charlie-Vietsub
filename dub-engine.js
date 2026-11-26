@@ -32,6 +32,9 @@
         paragraphHorizon: 6,      // bounded speech paragraph; long source silences end the horizon
         paragraphGap: 2,
         paragraphBeam: 8,
+        onsetAllowance: 0.15,     // media seconds reserved for the following take to start
+        shortTransition: 0.4,     // carry the previous take's pace over a short audible rest
+        transitionRateRatio: 1.14,
         startTolerance: 0.04,     // bắt đầu cụm sớm tối đa (giây media)
         driftCorrect: 0.15,       // lệch audio vượt ngưỡng này thì tua lại
         // Drift handling (1.6.8). Measured in real Chrome on 120 s of VieNeu dubbing: the old
@@ -1471,6 +1474,7 @@
 
         chooseRate(p, r, t, offset, lag) {
             const lim = this.provider.caps && this.provider.caps.prerender ? this.paceLimits(p, t) : { ceiling: Math.min(SYNC.maxSpeechRate, this.userMaxRate() || 9), lagCeiling: Math.min(SYNC.lagMaxSpeechRate, this.userMaxRate() || 9), floor: 0 };
+            const complete = this.keepsSpeech() && this.provider.caps?.prerender;
             const i = this.plans.indexOf(p);
             const next = i >= 0 ? this.plans[i + 1] : null;
             // Câu CHƯA HẾT (đoạn nối tiếp sang đoạn sau): đọc lấp tới đoạn sau, được chậm xuống
@@ -1486,6 +1490,10 @@
             if (early <= 0.3) floor = Math.max(floor, lim.floor);
             let endAt = joined ? next.start - gapAfter(p, next) : p.start + (p.targetDuration || 0) + SYNC.fitSlack;
             if (next && !joined) endAt = Math.min(endAt, next.start - 0.12);
+            if (complete && next) {
+                // Leave time for the actual boundary rest and the next take's startup.
+                endAt = Math.min(endAt, next.start - gapAfter(p, next) - SYNC.onsetAllowance);
+            }
             const win = Math.max(0.5, endAt - t);
             let want = (r.duration - offset) / win;
             if (lag > 0.25) want *= 1 + Math.min(SYNC.catchUpMax, lag * 0.05);
@@ -1569,10 +1577,19 @@
             }
             const cap = this.userMaxRate();
             if (cap) rate = Math.min(rate, cap);          // above even a slow voice's floor rate
-            if (this.keepsSpeech() && this.provider.caps?.prerender) {
+            if (complete) {
                 const lower = Math.min(cap || Infinity, Math.max(floor, recent ? last - (down ?? stepDown) : floor));
                 const upper = Math.min(cap || Infinity, lim.lagCeiling, ceiling, recent ? last + (up ?? stepUp) : ceiling);
                 rate = this.paragraphRate(p, r, t, offset, rate, { floor: Math.min(upper, Math.max(lower, rate)), ceiling: upper });
+                // Use actual playback for the transition test. A delayed onset can leave a take
+                // sounding after its predicted end, and added pauses can reset the forecast's pace.
+                if (this.lastRate && this.lastSpeechEnd != null && t - this.lastSpeechEnd <= SYNC.shortTransition &&
+                    prevPlan && this.lastSpokenId === prevPlan.id) {
+                    rate = Math.min(rate, this.lastRate * SYNC.transitionRateRatio);
+                    if (!prevPlan.continuesNext) {
+                        rate = Math.max(rate, Math.min(this.lastRate / SYNC.transitionRateRatio, ceiling, lim.lagCeiling, cap || Infinity));
+                    }
+                }
             }
             this.lastRate = rate;
             this.lastRateEnd = t + (r.duration - offset) / rate;

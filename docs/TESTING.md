@@ -32,7 +32,7 @@ sense of weight, not an assertion.
 |---|---|---|
 | `source-reliability.test.js` | 25 | Structural evidence, metadata uncertainty, harmless segmentation/music, comparable-track limits, bounded selection/stale guards, generic track ranking and actual-versus-first-choice cache provenance. |
 | `preservation.test.js` | 12 | Numeric/unit/date/code conservation, narrow polarity/comparison contradictions, format/idiom abstention, candidate veto/atomic alignment, uncertainty and real refine prompt. |
-| `paragraph-pace.test.js` | 15 | Multi-sentence horizon, hard caps/FIFO, natural speed, phrase steps, pending translation/silence boundaries, per-voice robust duration learning and uncertainty. |
+| `paragraph-pace.test.js` | 17 | Multi-sentence horizon, hard caps/FIFO, natural speed, phrase steps, pending translation/silence boundaries, per-voice robust duration learning and uncertainty. |
 | `dub-session.test.js` | 20 | Session transitions, playback versus synthesis leases, stale cache/render/live callbacks, replacement failures, EOF pending translations, invalid timings and every browser loader. |
 | `dub-full-speech.test.js` | 14 | FIFO beyond lag limits, late first takes, missing translations, planning/eviction/jobs, long source silences, manual seek/pause, natural EOF drain, speed changes, ads and live fallback. |
 | `dub-onset.test.js` | 4 | Initial/seek predecode, paused startup without a hold, redundant-zero-seek avoidance and playback-onset accounting across resume. |
@@ -330,6 +330,7 @@ as it does for a viewer. Check first that the user is not watching a video in th
      temperature, part size) go in `tests/harness/lab-data/speaker-lab-runs.js` as
      `window.SPEAKER_LAB_RUNS.<tag> = { system, model, temperature, part, fixed, debug, variants }`.
   4. Open `speaker-lab.html?tag=<tag>` (`&only=<id>.<variant>` for some): answers land in `speakerLab`.
+     Use `?tags=<baseline>,<trial>` to run both prompts sequentially on the same prepared data.
   5. `node tools/speaker-lab.js score <dataDir> --tag=<tag> --variant=plain [--detail] [--why]`. A planner
      change is scored on the same answers with `--planner=<copy of dub-planner.js>`; answers read on
      other lines need `--as=<variant>` and optionally `--lines-planner=<original input planner>`.
