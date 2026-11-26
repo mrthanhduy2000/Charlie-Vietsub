@@ -1,23 +1,25 @@
-# Handoff (2026-11-26, dubbing delivery, lane B)
+# Handoff (2026-11-26, dubbing delay attribution and speaker benchmark, lanes B/D)
 
 ## Current state
-- Charlie Vietsub 3.2.4 in the canonical checkout and GitHub Charlie-Vietsub/main.
-- Chrome Profile 42 loads ID alijbbmpkioojdegjipbbhmlgchpfgof from this folder. Reload after updating.
-- Dubbing reads use the full timed caption track and the current playback engine as scope.
-- Shared source cues cannot duplicate speaker marks. Source context for speech uses the segment span.
-- Voice selection is captured with the cache key; stale source or cast work cannot replace current audio.
-- Duration forecasts use recorded take units, and learned speed follows the actual TTS voice.
-- A confirmed cache miss on the next take can proceed before looking up later takes.
-- Dubbing still preserves subtitle content in order while video plays and drains remaining speech at EOF.
-- Measurement used offline playback and read-only archived/Chrome captions. No audio was played.
-- npm test: 1,193 pass, 0 fail, 2 skips. Across 145 videos, 16,481 segments kept all their words.
-- Simulated late starts 1,890 to 1,889. Recorded startup was unchanged; gap time 6.56 s to 6.77 s.
-- The 45-video and 24-scenario regression run's three small trade-offs are recorded in DUBBING.md.
+- Charlie Vietsub stays at 3.2.4. This handoff changes the speaker benchmark and documentation.
+- Chrome Profile 42 loads ID alijbbmpkioojdegjipbbhmlgchpfgof from the canonical checkout.
+- 145 saved videos, 16,481 spoken segments. Playback onsets over 0.5 s: 2,008.
+- At +0.5 s an earlier take was unfinished in 1,495 cases, its successor lacked audio in 28
+  other cases, and 485 cases were gated by rest, scheduling or element startup.
+- Zero simulated startup: 1,655 late onsets. Zero modeled generation RTF: 1,856. Translations
+  were ready in both; this comparison does not measure live translation waits.
+- An earlier finish target (rest plus 150 ms of startup allowance) yielded 1,911 late onsets
+  but 990 versus 900 adjacent rate jumps over 15%. The worst lag was unchanged. No pacing change.
+- Speaker lab replays real archived Gemini 3.1 Flash-Lite text answers against named PBS captions.
+- Experimental October run v3: 87.8% average for plain captions, 91.8% with edited labels stripped.
+- The scorer rejects incompatible line indices. New answers save the ordered caption text hash.
+- The exact historical input line builder for October v2/v3 is dub-planner.js at e43f006.
+- No audio was played. The 145-video experiment was a simulator run.
 
 ## Unfinished
-- Live audio, speaker attribution accuracy and source-meaning judgments remain unverified.
-- Dense speech can build up queued delay, especially with a slow server or a low rate cap.
-- Fresh ASR accuracy, CPU/latency/cost and full-video semantic truth remain unmeasured.
+- Live audio, exact current production speaker prompt accuracy, and source-meaning judgments.
+- Dense speech can accumulate delay, especially with slow synthesis or a low voice rate cap.
+- Fresh ASR accuracy, user-specific CPU/latency/cost and full-video semantic truth remain unmeasured.
 - Complex clause completeness, causality, conditions, arbitrary names and pronouns remain unverified.
 - Natural local domains/senses have no human annotation; keyword evidence remains English-oriented.
   Current corpus measurements do not establish real-provider translation improvement or billed cost.
@@ -30,8 +32,8 @@
 - The Codex sidebar label may still show the old project name; rename it manually.
 
 ## Traps
+- The October lab tag v3 is different from production SPEAKER_PROMPT_VERSION 3.
+- Measure playbackLag for first movement; the scheduling lag omits element startup.
 - Never identify a YouTube reading by its media element; navigation can reuse it.
-- Cache keys must describe the voice that actually made the audio, including during cast updates.
-- The corpus and simulator check structure and delivery, without labeled answers for speaker identity.
-- Never expose private recovery data or API keys. Keep the migration backup outside Git.
-- Keep the canonical directory stable. Reload the existing extension to retain its settings.
+- Keep the canonical path stable. Reload the existing extension to retain settings after updates.
+- Keep private recovery data and API keys outside Git.

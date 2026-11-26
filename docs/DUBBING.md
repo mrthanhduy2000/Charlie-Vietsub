@@ -682,6 +682,23 @@ language, a role label instead of "unknown", gender from a role or how others ad
 Not yet scored: the prepared lab lines (30 news videos, "plains") hold no inner ">>", so the split
 does not change them; prompt 3 has not been read on the lab (paid) nor on qSlxe4hA66g live.
 
+**2026-11-26 replay of archived readings.** The saved run named `v3` uses an experimental October
+prompt with explicit line-number instructions. It is separate from production
+`SPEAKER_PROMPT_VERSION = 3`. The October `v2` and `v3` answers need the unjoined caption input
+from revision `e43f006`. The current input builder changes line counts on seven plain tracks;
+scoring those answers on the new line indices gives an invalid comparison.
+
+With restored input lines and the current turn mapper, the experimental `v3` run using
+Gemini 3.1 Flash-Lite averaged 87.8% across 30 plain tracks and 91.8% on the same 30 edited
+tracks with speaker labels removed. The named tracks served as reference. On the plain tracks,
+14.0% of words pooled across videos were in the wrong voice: 5.5 points for missed whole turns,
+4.1 for speakers without a voice of their own, 2.8 for whole turns assigned to someone else and
+1.6 for early or late changes. On the edited no-label tracks the pooled error was 8.4%:
+1.5 missed, 4.3 without their own voice, 2.1 wrong turn and 0.4 early or late (rounded).
+The `v2` run averaged 90.2% on 29 plain tracks (one missing answer) and 93.5% on 30 edited
+tracks. These are archived text predictions for PBS clips. The exact production prompt/model
+combination and text-to-speaker performance outside this news corpus were not tested live.
+
 **Prompt 2 and the speaker lab (2.5.3).** Scored on 30 PBS NewsHour videos against their named
 transcripts (docs/TESTING.md "Speaker lab"): words in the right voice 81.5 -> 89.3% on
 recognizer-like captions ("plain"), 89.7 -> 93.5% on clean ones, people sharing a voice 20 -> 7.
@@ -1822,3 +1839,39 @@ cache priority change reproduced two 41-to-42 blob-URL peaks during a fast slowd
 shifted the longest gap in the busy 2x case from 0.93 s to 0.94 s, with 1.51 s total there.
 These are the trade-offs of generating the due take sooner; the forecast change did not cause
 those three changes.
+
+## Delay attribution on 3.2.4 (2026-11-26)
+
+The same 145 saved captions yielded 16,481 scheduled speech segments with all translations ready,
+the 3.8-syllable/s voice model, normal video speed and the simulator's busy Chrome start model.
+Use `stats.started[].playbackLag` from the first media movement to include startup latency.
+`lag` at scheduling misses 119 late starts here (1,889 scheduled vs 2,008 at playback,
+above 0.5 s). Actual PCM and translation latency are outside this simulation.
+
+Of the 2,008 late playback starts, 1,495 had an unfinished previous take at the new cue's
+0.5 s mark: 1,326 were playing and 169 had not begun. Another 28 had no audio ready then;
+the remaining 485 were delayed by the
+inter-take rest, scheduler and element startup. For attribution, record the cue due time,
+the actual prior take end (`lastSpeechEnd`), and take readiness (`addRendered`), then compare
+with the scheduling time and first movement. Prior playback can already include earlier
+startup and rest delays that propagated down the queue.
+
+At the optimistic automatic ceiling of 1.65x, 196 of those 1,495 takes would still overrun
+the next cue by more than 0.5 s from an on-time start. In another 780 the previous take's
+actual onset was already too late for that ceiling to catch up on this boundary. The other
+519 are an upper bound for what a local rate change might recover; actual voice and pacing
+limits can reduce it.
+
+Counterfactuals preserved segment content and order. With element startup time zero, there
+were 1,655 late starts and global onset P95 went from 1.110 s to 0.970 s. Zero simulated
+per-second synthesis time (fixed request overhead retained) yielded 1,856 late starts and
+P95 1.066 s. Recent local server log sample (327 finished takes of at least 1.2 s):
+generation RTF median 0.25, P95 0.46, with five takes at or above real time. That log does
+not associate individual takes with the user's recent video.
+
+An offline pacing trial targeted the next cue minus its actual inter-take rest and a 150 ms
+startup allowance. At 145 videos, onsets over 0.5 s fell from 2,008 to 1,911 and positive onset
+lag summed to 3,142 s instead of 3,455 s. P95 moved from 1.110 s to 1.090 s; the 290 onsets
+over two seconds and the 10.136 s maximum were unchanged. Adjacent rate changes over 15%
+increased from 900 to 990. The trial is not enabled in production because it changes rhythm
+more often without improving the worst backlog. The corpus retained all 16,481 segments.

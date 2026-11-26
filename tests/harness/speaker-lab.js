@@ -7,6 +7,12 @@
 // instead of the extension's own (the background takes it from test pages only); any of them, or
 // debug, brings back each call's token counts and how it ended. Paid: one reading per track not in
 // the cache yet (charged to "lab:<id>" in the cost ledger).
+async function speakerInputHash(lines) {
+    const input = new TextEncoder().encode(JSON.stringify(lines));
+    const digest = await crypto.subtle.digest("SHA-256", input);
+    return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
+}
+
 // As dubbing.js reads a long video: parts of one size, `part` lines at most (fixed: exactly `part`),
 // each told the speakers found so far and who was talking when the part before ended, a part cut off
 // by the token cap going on from where its turns end (upTo); one answer with line numbers of the
@@ -61,7 +67,9 @@ async function readInParts(x, part, lab, fixed) {
             r = { ok: false, reason: "send", error: String(e && e.message || e) };
         }
         const store = (await chrome.storage.local.get("speakerLab")).speakerLab || {};
-        store[tag + "|" + x.id + "." + x.variant] = { r, ms: Date.now() - t0, n: x.lines.length, at: Date.now() };
+        store[tag + "|" + x.id + "." + x.variant] = {
+            r, ms: Date.now() - t0, n: x.lines.length, inputHash: await speakerInputHash(x.lines), at: Date.now()
+        };
         await chrome.storage.local.set({ speakerLab: store });
         out.push(`${k + 1}/${items.length} ${x.id}.${x.variant} ` + (r && r.ok
             ? `ok ${r.model}${r.fromCache ? " cache" : ""} speakers=${r.speakers.length} turns=${r.turns.length} ${r.confidence}`

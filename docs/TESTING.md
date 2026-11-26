@@ -332,7 +332,9 @@ as it does for a viewer. Check first that the user is not watching a video in th
   4. Open `speaker-lab.html?tag=<tag>` (`&only=<id>.<variant>` for some): answers land in `speakerLab`.
   5. `node tools/speaker-lab.js score <dataDir> --tag=<tag> --variant=plain [--detail] [--why]`. A planner
      change is scored on the same answers with `--planner=<copy of dub-planner.js>`; answers read on
-     other lines need `--as=<variant>` and the planner that made those lines. `--why` splits the
+     other lines need `--as=<variant>` and optionally `--lines-planner=<original input planner>`.
+     The scorer skips incompatible answers and exits with a nonzero status. Current runs check
+     the ordered line text by hash; older runs record only the line count. `--why` splits the
      words in a wrong voice by cause (a switch early or late, a turn missed, a turn in someone
      else's voice, a person with no voice of their own). `--sentences` (on both `prepare` and
      `score`) tries the line shape of BACKLOG 44, items named `<variant>s`.

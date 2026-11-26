@@ -14,7 +14,7 @@
 //        clean: ".en-US" without its labels. Then open
 //        chrome-extension://<id>/tests/harness/speaker-lab.html?tag=<run> (runs: lab-data/speaker-lab-runs.js)
 //   node tools/speaker-lab.js score <dataDir> --tag=<run> [--variant=plain] [--as=<variant>]
-//        [--planner=<file>] [--sentences] [--detail] [--why]
+//        [--planner=<file>] [--lines-planner=<file>] [--sentences] [--detail] [--why]
 //        reads the run's answers from chrome.storage.local "speakerLab" (tools/ext-storage.js) and
 //        scores each video word by word against the named transcript: acc (words in the right
 //        voice, voices matched to people one to one), one person one voice, voice purity, pairs of
@@ -27,6 +27,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const zlib = require("node:zlib");
+const { createHash } = require("node:crypto");
 const { execFileSync } = require("node:child_process");
 
 const ROOT = path.join(__dirname, "..");
@@ -34,6 +35,7 @@ const args = process.argv.slice(2);
 const opt = k => { const a = args.find(x => x.startsWith("--" + k)); return a ? (a.includes("=") ? a.slice(a.indexOf("=") + 1) : true) : null; };
 const plannerAt = opt("planner") ? path.resolve(opt("planner")) : path.join(ROOT, "dub-planner.js");
 const PLAN = require(plannerAt);
+const inputPlanner = opt("lines-planner") ? require(path.resolve(opt("lines-planner"))) : PLAN;
 
 // --sentences: a line shape on trial (BACKLOG 44), not the extension's. Each caption is split at its
 // sentence ends and before a ">>", then the pieces are joined up to a sentence end the way
@@ -76,7 +78,10 @@ function sentenceLines(lines) {
     }
     return out;
 }
-const speakerLines = groups => (opt("sentences") ? sentenceLines(PLAN.speakerLines(groups)) : PLAN.speakerLines(groups));
+const speakerLines = groups => {
+    const lines = inputPlanner.speakerLines(groups);
+    return opt("sentences") ? sentenceLines(lines) : lines;
+};
 
 // "NAME:" labels of a named transcript, with a party or a title after the name ("TAMARA KEITH,
 // National Public Radio:", "REP. MARIA ELVIRA SALAZAR (R-FL):")
@@ -311,7 +316,7 @@ function readAnswers(tag) {
     const out = new Map();
     for (const [k, v] of Object.entries(store)) {
         const [t, rest] = k.split("|");
-        if (t === tag && v && v.r && v.r.ok) out.set(rest, v.r);
+        if (t === tag && v && v.r && v.r.ok) out.set(rest, v);
     }
     return out;
 }
@@ -322,7 +327,7 @@ function scoreRun(dir) {
     const variant = String(opt("variant") || "plain");
     const as = String(opt("as") || variant);
     const answers = readAnswers(tag);
-    const agg = {}, rows = [];
+    const agg = {}, rows = [], mismatches = [];
     for (const j of videosIn(dir)) {
         const us = trackOf(j, ".en-US");
         if (!us) continue;
@@ -337,13 +342,19 @@ function scoreRun(dir) {
         const rank = new Map([...cnt].sort((a, b) => b[1] - a[1]).map(([s], r) => [s, r]));
         const vi = r => (r < PLAN.MAX_VOICES ? r : 1 + ((r - 1) % (PLAN.MAX_VOICES - 1)));
         methods.oracle5 = (t, sp) => vi(rank.get(sp));
-        const r = answers.get(j.id + "." + as);
+        const saved = answers.get(j.id + "." + as);
         let src = "";
-        if (r) {
+        if (saved) {
             const sl = speakerLines(groups);
-            const withAi = PLAN.speakerTurns(groups.slice(), { ai: PLAN.speakerHints(sl, r, 0, sl.length) });
-            methods.ai = t => PLAN.speakerAt(withAi, t);
-            src = withAi.source;
+            if (sl.length !== saved.n) {
+                mismatches.push(`${j.id} (${saved.n} saved, ${sl.length} rebuilt)`);
+            } else if (saved.inputHash && saved.inputHash !== createHash("sha256").update(JSON.stringify(sl.map(line => line.text))).digest("hex")) {
+                mismatches.push(`${j.id} (caption text or order changed)`);
+            } else {
+                const withAi = PLAN.speakerTurns(groups.slice(), { ai: PLAN.speakerHints(sl, saved.r, 0, sl.length) });
+                methods.ai = t => PLAN.speakerAt(withAi, t);
+                src = withAi.source;
+            }
         }
         const cells = [];
         for (const [name, fn] of Object.entries(methods)) {
@@ -356,6 +367,11 @@ function scoreRun(dir) {
         rows.push(`${j.id.padEnd(12)} people ${String(cnt.size).padEnd(3)} | ${cells.join(" | ")}`);
     }
     console.log(`${variant} (answers of run "${tag}" on ${as}): method  videos  acc  one-person-one-voice  purity  shared-pairs  split-people  voices/major`);
+    if (mismatches.length) {
+        console.error(`Skipped ${mismatches.length} incompatible AI answers. Rebuild their input with the original --lines-planner and line options.`);
+        if (opt("detail")) console.error(mismatches.join("\n"));
+        process.exitCode = 1;
+    }
     for (const [name, a] of Object.entries(agg)) console.log(`${name.padEnd(8)} ${a.n}  ${(a.acc / a.n * 100).toFixed(1)}  ${(a.cons / a.n * 100).toFixed(1)}  ${(a.pur / a.n * 100).toFixed(1)}  ${a.shared}  ${a.split}  ${(a.voices / a.n).toFixed(1)}/${(a.major / a.n).toFixed(1)}`);
     if (opt("detail")) console.log("per video: method vVoices acc/one-person-one-voice/purity shShared spSplit\n" + rows.join("\n"));
     if (opt("why")) {
@@ -371,4 +387,4 @@ const [cmd, a1, a2] = args.filter(x => !x.startsWith("--"));
 if (cmd === "extract" && a1 && a2) extract(a1, a2);
 else if (cmd === "prepare" && a1) prepare(a1);
 else if (cmd === "score" && a1) scoreRun(a1);
-else console.log("usage: node tools/speaker-lab.js extract <text-file> <dataDir> | prepare <dataDir> [--variants=plain,clean] [--sentences] | score <dataDir> --tag=<run> [--variant=plain] [--as=<variant>] [--sentences] [--detail] [--why]");
+else console.log("usage: node tools/speaker-lab.js extract <text-file> <dataDir> | prepare <dataDir> [--variants=plain,clean] [--sentences] | score <dataDir> --tag=<run> [--variant=plain] [--as=<variant>] [--planner=<file>] [--lines-planner=<file>] [--sentences] [--detail] [--why]");
